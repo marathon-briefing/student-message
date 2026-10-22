@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>BEK 學員訊息</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#0d1b2a; --card:#ffffff; --ink:#1c2b3a; --sub:#5c6b7a;
+    --accent:#c9a227; --accent-soft:#f5ecd7; --ok:#1f8a4c; --pending:#b06000;
+    --line:#e3e8ee; --radius:18px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;}
+  body{min-height:100vh;}
+  .wrap{max-width:480px; margin:0 auto; padding:0 16px calc(env(safe-area-inset-bottom) + 32px);}
+
+  /* 表頭 */
+  header{background:linear-gradient(160deg,#0d1b2a 0%,#1b3a5c 100%); color:#fff;
+    padding:28px 20px 22px; border-bottom-left-radius:22px; border-bottom-right-radius:22px;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  header .logo{display:flex; align-items:center; gap:10px;}
+  header .logo .badge{background:#fff; color:#0d1b2a; font-weight:800; font-size:13px;
+    letter-spacing:.5px; border-radius:8px; padding:4px 8px;}
+  header .logo .name{font-weight:800; letter-spacing:2px; font-size:15px;}
+  header h1{margin:14px 0 4px; font-size:22px; font-weight:800;}
+  header p{margin:0; font-size:14px; color:#c6d4e4; line-height:1.5;}
+  header .who{margin-top:10px; display:inline-block; background:rgba(255,255,255,.14);
+    border-radius:20px; padding:5px 14px; font-size:14px; font-weight:700;}
+
+  /* 卡片 */
+  .card{background:var(--card); border-radius:var(--radius); margin-top:16px;
+    padding:18px 16px; box-shadow:0 3px 12px rgba(0,0,0,.12);}
+  .card h2{margin:0 0 12px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;}
+  .card h2 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
+  .label{font-size:13px; font-weight:700; color:var(--sub); margin:14px 0 8px;}
+
+  /* 分類按鈕 */
+  .cats{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .cat{border:1.5px solid var(--line); border-radius:14px; padding:12px 10px; text-align:center;
+    background:#fff; cursor:pointer; transition:all .15s; }
+  .cat .t{font-weight:800; font-size:14px;}
+  .cat .s{font-size:11.5px; color:var(--sub); margin-top:2px;}
+  .cat.sel{border-color:var(--accent); background:var(--accent-soft); box-shadow:0 0 0 1px var(--accent);}
+  .cat.sel .t{color:#8a6d14;}
+
+  /* 文字框 */
+  textarea{width:100%; min-height:110px; border:1.5px solid var(--line); border-radius:14px;
+    padding:12px; font-size:15px; font-family:inherit; resize:vertical; color:var(--ink);}
+  textarea:focus{outline:none; border-color:var(--accent);}
+
+  /* 送出 */
+  .send{width:100%; margin-top:16px; border:none; border-radius:16px; padding:15px;
+    font-size:17px; font-weight:800; color:#fff; background:linear-gradient(135deg,#c9a227,#a8851f);
+    cursor:pointer; letter-spacing:1px; box-shadow:0 4px 12px rgba(169,133,31,.35);}
+  .send:disabled{opacity:.5;}
+  .note{font-size:12px; color:var(--sub); margin-top:10px; text-align:center; line-height:1.5;}
+
+  /* 結果提示 */
+  .toast{display:none; margin-top:12px; border-radius:14px; padding:12px 14px; font-size:14px; font-weight:700;}
+  .toast.ok{display:block; background:#e7f5ec; color:var(--ok);}
+  .toast.err{display:block; background:#fdeaea; color:#b03030;}
+
+  /* 歷史 */
+  .msg{border:1.5px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:10px; background:#fff;}
+  .msg .meta{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--sub);}
+  .msg .cat{display:inline-block; background:var(--accent-soft); color:#8a6d14; font-weight:700;
+    border-radius:8px; padding:2px 8px; font-size:11.5px;}
+  .msg .text{margin:8px 0 0; font-size:15px; line-height:1.55; white-space:pre-wrap; word-break:break-word;}
+  .msg .st{font-size:11.5px; font-weight:800; border-radius:8px; padding:2px 8px;}
+  .st.pending{background:#fdf0dc; color:var(--pending);}
+  .st.replied{background:#e7f5ec; color:var(--ok);}
+  .msg .reply{margin-top:8px; background:#f4f7fa; border-radius:10px; padding:10px 12px;}
+  .msg .reply .rl{font-size:11.5px; font-weight:800; color:var(--ok);}
+  .msg .reply .rt{font-size:14px; margin-top:3px; line-height:1.5; white-space:pre-wrap;}
+  .empty{color:var(--sub); font-size:14px; text-align:center; padding:16px 0;}
+  .foot{margin-top:18px; text-align:center; font-size:11.5px; color:#8fa3b8; letter-spacing:.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="badge">BEK</span><span class="name">RUNNING COACHING</span></div>
+    <h1>學員訊息</h1>
+    <p>要請假、身體有狀況，或有事想告訴教練，就在這裡寫下訊息。</p>
+    <span class="who" id="who">…</span>
+  </header>
+
+  <div class="card" id="formCard">
+    <h2><span class="dot"></span>寫訊息給教練</h2>
+    <div class="label">這是什麼事？</div>
+    <div class="cats" id="cats">
+      <button type="button" class="cat" data-cat="請假" data-sub="受傷">
+        <div class="t">請假・受傷</div><div class="s">扭傷、拉傷、身體某處疼痛</div></button>
+      <button type="button" class="cat" data-cat="請假" data-sub="生病">
+        <div class="t">請假・生病</div><div class="s">感冒、發燒、身體不適</div></button>
+      <button type="button" class="cat" data-cat="請假" data-sub="因工或有事">
+        <div class="t">請假・因工或有事</div><div class="s">出差、加班、臨時有事</div></button>
+      <button type="button" class="cat" data-cat="請假" data-sub="其他">
+        <div class="t">請假・其他</div><div class="s">其他無法訓練的原因</div></button>
+      <button type="button" class="cat" data-cat="事項" data-sub="一般事項">
+        <div class="t">一般事項</div><div class="s">日常回饋、課表感受、器材問題</div></button>
+      <button type="button" class="cat" data-cat="事項" data-sub="特別要告訴教練">
+        <div class="t">特別要告訴教練</div><div class="s">重要、緊急、想調整課表、報名比賽</div></button>
+    </div>
+    <div class="label">內容</div>
+    <textarea id="text" placeholder="例如：教練，明天腳踝還有點緊，想請假一天，後天再恢復訓練。"></textarea>
+    <button class="send" id="send">送出</button>
+    <div class="toast" id="toast"></div>
+    <div class="note">送出後，教練會在審查時看到並回覆；你隨時可以回來查看回覆。</div>
+  </div>
+
+  <div class="card">
+    <h2><span class="dot"></span>我的訊息與教練回覆</h2>
+    <div id="history"><div class="empty">載入中…</div></div>
+  </div>
+
+  <div class="foot">BEK RUNNING COACHING</div>
+</div>
+
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var SID = params.get('sid') || '';
+  var KEY = params.get('key') || '';
+  var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', B26001:'Maggie'};
+  var API = 'API_URL_PLACEHOLDER';
+
+  if (!SID || !KEY) {
+    document.getElementById('who').textContent = '連結無效';
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('history').innerHTML = '<div class="empty">請使用教練發給你的專屬連結。</div>';
+    return;
+  }
+  document.getElementById('who').textContent = '學員 ' + (NAMES[SID] || SID);
+  var formCard = document.getElementById('formCard');
+
+  // 分類選擇
+  var selCat = null, selSub = null;
+  var catBtns = document.querySelectorAll('.cat');
+  catBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      selCat = b.dataset.cat; selSub = b.dataset.sub;
+      catBtns.forEach(function(x){ x.classList.remove('sel'); });
+      b.classList.add('sel');
+    });
+  });
+
+  // 送出
+  document.getElementById('send').addEventListener('click', function(){
+    var text = document.getElementById('text').value.trim();
+    var btn = document.getElementById('send');
+    if (!selCat) { toast('請先選擇這是什麼事', 'err'); return; }
+    if (text.length < 2) { toast('請輸入內容', 'err'); return; }
+    btn.disabled = true; btn.textContent = '送出中…';
+    fetch(API + '?mode=send', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({sid:SID, key:KEY, cat:selCat, sub:selSub, text:text})
+    }).then(function(r){ return r.json(); })
+      .then(function(j){
+        btn.disabled = false; btn.textContent = '送出';
+        if (j.ok) {
+          toast('已送出，教練收到囉！', 'ok');
+          document.getElementById('text').value = '';
+          catBtns.forEach(function(x){ x.classList.remove('sel'); }); selCat = selSub = null;
+          loadHistory();
+        } else {
+          toast(j.error || '送出失敗，請再試一次', 'err');
+        }
+      })
+      .catch(function(){ btn.disabled = false; btn.textContent = '送出'; toast('網路連線失敗，請再試一次', 'err'); });
+  });
+
+  function toast(msg, kind){
+    var t = document.getElementById('toast');
+    t.className = 'toast ' + kind;
+    t.textContent = msg;
+    setTimeout(function(){ t.className = 'toast'; }, 4000);
+  }
+
+  // 歷史
+  function loadHistory(){
+    var box = document.getElementById('history');
+    fetch(API + '?mode=history&sid=' + encodeURIComponent(SID) + '&key=' + encodeURIComponent(KEY))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (!j.ok) { box.innerHTML = '<div class="empty">無法讀取訊息。</div>'; return; }
+        var list = j.messages || [];
+        if (!list.length) { box.innerHTML = '<div class="empty">還沒有訊息紀錄。</div>'; return; }
+        box.innerHTML = list.map(function(m){
+          var stCls = (m.status === '已回覆') ? 'replied' : 'pending';
+          var replyHtml = (m.reply && m.status === '已回覆')
+            ? '<div class="reply"><div class="rl">教練回覆 · ' + (m.replyDate || '') + '</div>' +
+              '<div class="rt">' + esc(m.reply) + '</div></div>' : '';
+          return '<div class="msg">' +
+            '<div class="meta"><span class="cat">' + esc(m.category) + '</span>' +
+            '<span>' + esc(m.date) + '</span>' +
+            '<span class="st ' + stCls + '">' + esc(m.status) + '</span></div>' +
+            '<div class="text">' + esc(m.text) + '</div>' + replyHtml + '</div>';
+        }).join('');
+      })
+      .catch(function(){ box.innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>'; });
+  }
+  function esc(s){ var d=document.createElement('div'); d.textContent = (s==null?'':String(s)); return d.innerHTML; }
+
+  loadHistory();
+  // 每 60 秒自動刷新回覆
+  setInterval(loadHistory, 60000);
+})();
+</script>
+</body>
+</html>

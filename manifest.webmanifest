@@ -1,0 +1,15 @@
+{
+  "name": "BEK 學員訊息",
+  "short_name": "BEK 訊息",
+  "description": "請假、身體狀況或有事告訴教練，都在這裡寫訊息。",
+  "lang": "zh-Hant",
+  "start_url": "./index.html?from=home",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1b2a",
+  "theme_color": "#0d1b2a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
