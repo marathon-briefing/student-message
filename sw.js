@@ -14,8 +14,8 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  // API 請求不打快取（保持即時）；其餘網路失敗時回退快取
-  if (url.pathname.includes('mode=') || e.request.method !== 'GET') return;
+  // 只處理同源 GET（PWA 自身檔案）；API（script.google.com 跨域）與非 GET 一律走網路
+  if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request)
       .then((r) => { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return r; })
