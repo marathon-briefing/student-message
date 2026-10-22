@@ -270,26 +270,22 @@
     btn.disabled = true; btn.textContent = '送出中…';
     fetch(API + '?mode=send', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
       body: JSON.stringify(body)
-    }).then(function(r){ return r.json(); })
-      .then(function(j){
+    }).then(function(){
         btn.disabled = false; btn.textContent = '送出';
-        if (j.ok) {
-          toast(j.dup ? '相同訊息已收到，無需重複送出' : '已送出，教練收到囉！', 'ok');
-          document.getElementById('plainText').value = '';
-          document.getElementById('lNote').value = '';
-          document.getElementById('lStart').value = '';
-          document.getElementById('lEnd').value = '';
-          document.getElementById('iNote').value = '';
-          document.getElementById('iWhen').value = '';
-          catBtns.forEach(function(x){ x.classList.remove('sel'); });
-          selCat = selSub = null;
-          showForm('text');
-          loadHistory();
-        } else {
-          toast(j.error || '送出失敗，請再試一次', 'err');
-        }
+        toast('已送出，教練收到囉！', 'ok');
+        document.getElementById('plainText').value = '';
+        document.getElementById('lNote').value = '';
+        document.getElementById('lStart').value = '';
+        document.getElementById('lEnd').value = '';
+        document.getElementById('iNote').value = '';
+        document.getElementById('iWhen').value = '';
+        catBtns.forEach(function(x){ x.classList.remove('sel'); });
+        selCat = selSub = null;
+        showForm('text');
+        loadHistory();
       })
       .catch(function(){ btn.disabled = false; btn.textContent = '送出'; toast('網路連線失敗，請再試一次', 'err'); });
   });

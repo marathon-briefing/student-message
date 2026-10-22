@@ -171,13 +171,13 @@
     btn.disabled = true; btn.textContent = '送出中…';
     fetch(API + '?mode=coach_action', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
       body: JSON.stringify(payload)
-    }).then(function(r){ return r.json(); })
-      .then(function(j){
-        if (j.ok) { toast(act.label + ' ✓ 已回覆學員並登錄處置'); load(); }
-        else { btn.disabled = false; btn.textContent = oldTxt; toast(j.error || '送出失敗', 'err'); }
-      })
+    }).then(function(){
+      toast(act.label + ' ✓ 已送出（回覆＋處置登錄）');
+      load();
+    })
       .catch(function(){ btn.disabled = false; btn.textContent = oldTxt; toast('網路連線失敗', 'err'); });
   }
 
@@ -280,13 +280,13 @@
             b.disabled = true; b.textContent = '送出中…';
             fetch(API + '?mode=coach_reply', {
               method:'POST',
-              headers:{'Content-Type':'application/json'},
+              mode:'no-cors',
+              headers:{'Content-Type':'text/plain;charset=UTF-8'},
               body: JSON.stringify({mode:'coach_reply', ck:CK, row:parseInt(b.dataset.row,10), reply:txt})
-            }).then(function(r){ return r.json(); })
-              .then(function(j){
-                if (j.ok) { toast('已回覆，學員端同步更新'); load(); }
-                else { b.disabled = false; b.textContent = '回覆並標為已回覆'; toast(j.error || '送出失敗', 'err'); }
-              })
+            }).then(function(){
+              toast('已回覆，學員端同步更新');
+              load();
+            })
               .catch(function(){ b.disabled = false; b.textContent = '回覆並標為已回覆'; toast('網路連線失敗', 'err'); });
           });
         });
