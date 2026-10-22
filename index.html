@@ -208,8 +208,8 @@
   function esc(s){ var d=document.createElement('div'); d.textContent = (s==null?'':String(s)); return d.innerHTML; }
 
   loadHistory();
-  // 每 60 秒自動刷新回覆
-  setInterval(loadHistory, 60000);
+  // 每 20 秒自動刷新回覆
+  setInterval(loadHistory, 20000);
 })();
 </script>
 </body>

@@ -166,6 +166,13 @@
   }
 
   load();
+
+  // 每 20 秒自動檢查新訊息；若正在輸入回覆則跳過本輪，避免打斷
+  setInterval(function(){
+    var a = document.activeElement;
+    if (a && a.tagName === 'TEXTAREA') return;
+    load();
+  }, 20000);
 })();
 </script>
 </body>
