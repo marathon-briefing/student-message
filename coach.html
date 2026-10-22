@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>BEK 教練・學員訊息</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#0d1b2a; --card:#ffffff; --ink:#1c2b3a; --sub:#5c6b7a;
+    --accent:#c9a227; --accent-soft:#f5ecd7; --ok:#1f8a4c; --pending:#b06000;
+    --line:#e3e8ee; --radius:18px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;}
+  body{min-height:100vh;}
+  .wrap{max-width:540px; margin:0 auto; padding:0 16px calc(env(safe-area-inset-bottom) + 32px);}
+
+  header{background:linear-gradient(160deg,#0d1b2a 0%,#1b3a5c 100%); color:#fff;
+    padding:28px 20px 22px; border-bottom-left-radius:22px; border-bottom-right-radius:22px;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  header .logo{display:flex; align-items:center; gap:10px;}
+  header .logo .badge{background:#fff; color:#0d1b2a; font-weight:800; font-size:13px;
+    letter-spacing:.5px; border-radius:8px; padding:4px 8px;}
+  header .logo .name{font-weight:800; letter-spacing:2px; font-size:15px;}
+  header h1{margin:14px 0 4px; font-size:22px; font-weight:800;}
+  header p{margin:0; font-size:14px; color:#c6d4e4; line-height:1.5;}
+  header .stat{margin-top:10px; display:inline-block; background:rgba(255,255,255,.14);
+    border-radius:20px; padding:5px 14px; font-size:14px; font-weight:700;}
+
+  .card{background:var(--card); border-radius:var(--radius); margin-top:16px;
+    padding:18px 16px; box-shadow:0 3px 12px rgba(0,0,0,.12);}
+  .card h2{margin:0 0 12px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;}
+  .card h2 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
+
+  .msg{border:1.5px solid var(--line); border-radius:16px; padding:14px 14px 12px; margin-bottom:12px;}
+  .msg.pending{border-color:#e8c98a; background:#fffbf2;}
+  .msg .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .msg .who{font-weight:800; font-size:15px;}
+  .msg .date{font-size:12px; color:var(--sub);}
+  .msg .tag{font-size:11px; font-weight:700; background:var(--accent-soft); color:#8a6d14;
+    border-radius:8px; padding:3px 8px;}
+  .msg .st{font-size:11px; font-weight:800; border-radius:8px; padding:3px 8px; margin-left:auto;}
+  .msg .st.pending{background:#fdeeda; color:var(--pending);}
+  .msg .st.done{background:#e2f4ea; color:var(--ok);}
+  .msg .body{margin-top:10px; font-size:15px; line-height:1.6; white-space:pre-wrap; color:#24303f;}
+  .msg .reply{margin-top:10px; border-left:3px solid var(--ok); background:#f2f8f4;
+    padding:10px 12px; border-radius:0 10px 10px 0; font-size:14px;}
+  .msg .reply .lbl{font-weight:800; color:var(--ok); font-size:12px; margin-bottom:4px;}
+
+  textarea{width:100%; min-height:72px; border:1.5px solid var(--line); border-radius:12px;
+    padding:10px; font-size:14px; font-family:inherit; resize:vertical; color:var(--ink); margin-top:10px;}
+  textarea:focus{outline:none; border-color:var(--accent);}
+  .rbtn{width:100%; margin-top:8px; border:none; border-radius:12px; padding:11px;
+    font-size:15px; font-weight:800; color:#fff; background:linear-gradient(135deg,#1f8a4c,#15703e);
+    cursor:pointer; letter-spacing:1px;}
+  .rbtn:disabled{opacity:.5;}
+  .rbtn.saved{background:#b7b7b7;}
+
+  .empty{text-align:center; color:var(--sub); font-size:14px; padding:26px 0;}
+  .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; z-index:9;
+    background:#1c2b3a; color:#fff; border-radius:14px; padding:11px 20px; font-size:14px;
+    font-weight:700; opacity:0; pointer-events:none; transition:opacity .25s; max-width:90%;}
+  .toast.show{opacity:1;}
+  .toast.err{background:#b3261e;}
+  .foot{text-align:center; color:#5c6b7a; font-size:12px; letter-spacing:1px; margin:22px 0 8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="badge">BEK</span><span class="name">RUNNING COACHING</span></div>
+    <h1>學員訊息・教練端</h1>
+    <p id="stat">載入中…</p>
+  </header>
+
+  <div class="card">
+    <h2><span class="dot"></span>學員訊息與回覆</h2>
+    <div id="list"><div class="empty">載入中…</div></div>
+  </div>
+
+  <div class="foot">BEK RUNNING COACHING</div>
+</div>
+<div id="toast" class="toast"></div>
+
+<script>
+(function(){
+  var params = new URLSearchParams(location.search);
+  var CK = params.get('ck') || '';
+  var API = 'https://script.google.com/macros/s/AKfycbwUchpwx31ZjTyw5wZ5s6KcF4IVnX2vfSd2j9ggA9p1uWF0e_MdYbPFf_TRzGpSSf9R3Q/exec';
+  var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', B26001:'Maggie'};
+
+  if (!CK) {
+    document.getElementById('stat').textContent = '缺少教練金鑰';
+    document.getElementById('list').innerHTML = '<div class="empty">請使用教練專用連結。</div>';
+    return;
+  }
+
+  function toast(msg, kind){
+    var t = document.getElementById('toast');
+    t.className = 'toast ' + (kind||'');
+    t.textContent = msg;
+    setTimeout(function(){ t.className = 'toast'; }, 3500);
+  }
+
+  function esc(s){
+    return String(s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function load(){
+    fetch(API + '?mode=coach_list&ck=' + encodeURIComponent(CK))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (!j.ok) { toast(j.error || '金鑰無效', 'err'); return; }
+        var list = j.messages || [];
+        list.sort(function(a,b){ return (a.status==='待回覆' ? 0 : 1) - (b.status==='待回覆' ? 0 : 1); });
+        var pending = list.filter(function(m){ return m.status !== '已回覆'; }).length;
+        document.getElementById('stat').textContent = '待回覆 ' + pending + ' 則　/　共 ' + list.length + ' 則';
+        var box = document.getElementById('list');
+        if (!list.length) { box.innerHTML = '<div class="empty">還沒有學員訊息。</div>'; return; }
+        var html = '';
+        list.forEach(function(m, idx){
+          var st = m.status === '已回覆' ? 'done' : 'pending';
+          var stTxt = m.status || '待回覆';
+          html += '<div class="msg ' + (m.status==='已回覆'?'':'pending') + '">'
+            + '<div class="top"><span class="who">' + esc(NAMES[m.sid] || m.sid) + '</span>'
+            + '<span class="date">' + esc(m.date) + '</span>'
+            + '<span class="tag">' + esc(m.cat) + '</span>'
+            + '<span class="st ' + st + '">' + esc(stTxt) + '</span></div>'
+            + '<div class="body">' + esc(m.text) + '</div>';
+          if (m.reply) {
+            html += '<div class="reply"><div class="lbl">教練回覆 ' + (m.replyDate ? '· ' + esc(m.replyDate) : '') + '</div>'
+              + esc(m.reply) + '</div>';
+          } else {
+            html += '<textarea id="tx' + idx + '" placeholder="輸入回覆內容…"></textarea>'
+              + '<button class="rbtn" id="bt' + idx + '" data-row="' + m.row + '" data-i="' + idx + '">回覆並標為已回覆</button>';
+          }
+          html += '</div>';
+        });
+        box.innerHTML = html;
+        box.querySelectorAll('button.rbtn').forEach(function(b){
+          b.addEventListener('click', function(){
+            var i = b.dataset.i;
+            var t = document.getElementById('tx' + i);
+            var txt = (t.value || '').trim();
+            if (txt.length < 1) { toast('請輸入回覆內容', 'err'); return; }
+            b.disabled = true; b.textContent = '送出中…';
+            fetch(API + '?mode=coach_reply', {
+              method:'POST',
+              headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({mode:'coach_reply', ck:CK, row:parseInt(b.dataset.row,10), reply:txt})
+            }).then(function(r){ return r.json(); })
+              .then(function(j){
+                if (j.ok) { toast('已回覆，學員端同步更新'); load(); }
+                else { b.disabled = false; b.textContent = '回覆並標為已回覆'; toast(j.error || '送出失敗', 'err'); }
+              })
+              .catch(function(){ b.disabled = false; b.textContent = '回覆並標為已回覆'; toast('網路連線失敗', 'err'); });
+          });
+        });
+      })
+      .catch(function(){ document.getElementById('list').innerHTML = '<div class="empty">網路連線失敗。</div>'; });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
