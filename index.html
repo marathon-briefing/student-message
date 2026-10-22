@@ -125,10 +125,10 @@
 <script>
 (function(){
   var params = new URLSearchParams(location.search);
-  var SID = params.get('sid') || '';
+  var SID = params.get('s') || params.get('sid') || '';
   var KEY = params.get('key') || '';
   var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', B26001:'Maggie'};
-  var API = 'https://script.google.com/macros/s/AKfycbycJ96ZEhacKCgZ_FPt7oDR0-gvbmqIOmSsglrwl6A_uDLZN35Ap4zjxL1cJvfFePat/exec';
+  var API = 'https://script.google.com/macros/s/AKfycbwUchpwx31ZjTyw5wZ5s6KcF4IVnX2vfSd2j9ggA9p1uWF0e_MdYbPFf_TRzGpSSf9R3Q/exec';
 
   if (!SID || !KEY) {
     document.getElementById('who').textContent = '連結無效';
@@ -160,7 +160,7 @@
     fetch(API + '?mode=send', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({sid:SID, key:KEY, cat:selCat, sub:selSub, text:text})
+      body: JSON.stringify({s:SID, key:KEY, cat:selCat, sub:selSub, text:text})
     }).then(function(r){ return r.json(); })
       .then(function(j){
         btn.disabled = false; btn.textContent = '送出';
@@ -186,7 +186,7 @@
   // 歷史
   function loadHistory(){
     var box = document.getElementById('history');
-    fetch(API + '?mode=history&sid=' + encodeURIComponent(SID) + '&key=' + encodeURIComponent(KEY))
+    fetch(API + '?mode=history&s=' + encodeURIComponent(SID) + '&key=' + encodeURIComponent(KEY))
       .then(function(r){ return r.json(); })
       .then(function(j){
         if (!j.ok) { box.innerHTML = '<div class="empty">無法讀取訊息。</div>'; return; }
