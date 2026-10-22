@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0d1b2a">
-<title>BEK 教練・學員訊息</title>
+<title>教練・學員訊息</title>
 <link rel="icon" href="icons/icon-192.png">
 <style>
   :root{
@@ -16,17 +16,16 @@
   html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;}
   body{min-height:100vh;}
-  .wrap{max-width:540px; margin:0 auto; padding:0 16px calc(env(safe-area-inset-bottom) + 32px);}
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px calc(env(safe-area-inset-bottom) + 32px);}
 
   header{background:linear-gradient(160deg,#0d1b2a 0%,#1b3a5c 100%); color:#fff;
     padding:28px 20px 22px; border-bottom-left-radius:22px; border-bottom-right-radius:22px;
     box-shadow:0 6px 18px rgba(0,0,0,.25);}
   header .logo{display:flex; align-items:center; gap:10px;}
-  header .logo .badge{background:#fff; color:#0d1b2a; font-weight:800; font-size:13px;
-    letter-spacing:.5px; border-radius:8px; padding:4px 8px;}
+  header .logo img{width:44px; height:44px; border-radius:50%; object-fit:contain;
+    background:#fff; padding:3px;}
   header .logo .name{font-weight:800; letter-spacing:2px; font-size:15px;}
   header h1{margin:14px 0 4px; font-size:22px; font-weight:800;}
-  header p{margin:0; font-size:14px; color:#c6d4e4; line-height:1.5;}
   header .stat{margin-top:10px; display:inline-block; background:rgba(255,255,255,.14);
     border-radius:20px; padding:5px 14px; font-size:14px; font-weight:700;}
 
@@ -35,29 +34,53 @@
   .card h2{margin:0 0 12px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;}
   .card h2 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
 
-  .msg{border:1.5px solid var(--line); border-radius:16px; padding:14px 14px 12px; margin-bottom:12px;}
-  .msg.pending{border-color:#e8c98a; background:#fffbf2;}
-  .msg .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
-  .msg .who{font-weight:800; font-size:15px;}
-  .msg .date{font-size:12px; color:var(--sub);}
-  .msg .tag{font-size:11px; font-weight:700; background:var(--accent-soft); color:#8a6d14;
-    border-radius:8px; padding:3px 8px;}
-  .msg .st{font-size:11px; font-weight:800; border-radius:8px; padding:3px 8px; margin-left:auto;}
-  .msg .st.pending{background:#fdeeda; color:var(--pending);}
-  .msg .st.done{background:#e2f4ea; color:var(--ok);}
-  .msg .body{margin-top:10px; font-size:15px; line-height:1.6; white-space:pre-wrap; color:#24303f;}
-  .msg .reply{margin-top:10px; border-left:3px solid var(--ok); background:#f2f8f4;
-    padding:10px 12px; border-radius:0 10px 10px 0; font-size:14px;}
-  .msg .reply .lbl{font-weight:800; color:var(--ok); font-size:12px; margin-bottom:4px;}
+  /* 對話串 */
+  .thread{border:1.5px solid var(--line); border-radius:16px; padding:12px; margin-bottom:14px;}
+  .thread.has-pending{border-color:#e8c98a; background:#fffdf6;}
+  .thread .th-meta{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--sub); margin-bottom:10px; flex-wrap:wrap;}
+  .thread .th-meta .who{font-weight:800; font-size:14px; color:var(--ink);}
+  .thread .th-meta .date{font-size:12px; color:var(--sub);}
+  .thread .th-meta .st{font-size:11px; font-weight:800; border-radius:8px; padding:2px 8px; margin-left:auto;}
+  .st.pending{background:#fdeeda; color:var(--pending);}
+  .st.done{background:#e2f4ea; color:var(--ok);}
 
-  textarea{width:100%; min-height:72px; border:1.5px solid var(--line); border-radius:12px;
+  .tnode{margin-bottom:10px;}
+  .tnode .who-line{font-size:11px; font-weight:800; margin-bottom:3px;}
+  .tnode.stu .who-line{color:var(--pending);}
+  .tnode.coa .who-line{color:var(--ok);}
+  .bubble{border-radius:12px; padding:10px 12px; font-size:14.5px; line-height:1.55;
+    white-space:pre-wrap; word-break:break-word;}
+  .tnode.stu .bubble{background:#f6f0e2; border:1px solid #ead9b0;}
+  .tnode.coa .bubble{background:#eef7f1; border:1px solid #cfe8d8;}
+  .bubble .meta{font-size:11px; color:var(--sub); margin-top:5px;}
+  .bubble .cat-tag{display:inline-block; font-size:10.5px; font-weight:700; background:var(--accent-soft);
+    color:#8a6d14; border-radius:6px; padding:1px 6px; margin-right:5px;}
+
+  /* 處置按鈕 */
+  .actions{margin-top:6px; display:flex; flex-wrap:wrap; gap:8px;}
+  .act{border:none; border-radius:10px; padding:9px 12px; font-size:13px; font-weight:800;
+    cursor:pointer; color:#fff; letter-spacing:.5px;}
+  .act.injury{background:#b3261e;}
+  .act.rest{background:#b06000;}
+  .act.pause{background:#5b6770;}
+  .act.ease{background:#1f7a8c;}
+  .act.doctor{background:#7a4fb3;}
+  .act.recover{background:#1f8a4c;}
+  .act:disabled{opacity:.5;}
+  .disposal-note{margin-top:8px; font-size:11.5px; color:var(--sub); line-height:1.5;
+    background:#f7f8fa; border-radius:8px; padding:6px 10px;}
+
+  textarea{width:100%; min-height:60px; border:1.5px solid var(--line); border-radius:12px;
     padding:10px; font-size:14px; font-family:inherit; resize:vertical; color:var(--ink); margin-top:10px;}
   textarea:focus{outline:none; border-color:var(--accent);}
+  .tpls{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .tpl{font-size:12px; border:1.5px solid var(--line); background:#fff; color:var(--ink);
+    border-radius:14px; padding:4px 10px; cursor:pointer;}
+  .tpl:active{background:var(--accent-soft);}
   .rbtn{width:100%; margin-top:8px; border:none; border-radius:12px; padding:11px;
     font-size:15px; font-weight:800; color:#fff; background:linear-gradient(135deg,#1f8a4c,#15703e);
     cursor:pointer; letter-spacing:1px;}
   .rbtn:disabled{opacity:.5;}
-  .rbtn.saved{background:#b7b7b7;}
 
   .empty{text-align:center; color:var(--sub); font-size:14px; padding:26px 0;}
   .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; z-index:9;
@@ -71,7 +94,10 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="logo"><span class="badge">BEK</span><span class="name">RUNNING COACHING</span></div>
+    <div class="logo" id="brandRow">
+      <img id="brandLogo" src="assets/bek_logo.png" alt="BEK">
+      <span class="name" id="brandName">BEK RUNNING COACHING</span>
+    </div>
     <h1>學員訊息・教練端</h1>
     <p id="stat">載入中…</p>
   </header>
@@ -81,7 +107,7 @@
     <div id="list"><div class="empty">載入中…</div></div>
   </div>
 
-  <div class="foot">BEK RUNNING COACHING</div>
+  <div class="foot" id="footBrand">BEK RUNNING COACHING</div>
 </div>
 <div id="toast" class="toast"></div>
 
@@ -91,6 +117,17 @@
   var CK = params.get('ck') || '';
   var API = 'https://script.google.com/macros/s/AKfycbwUchpwx31ZjTyw5wZ5s6KcF4IVnX2vfSd2j9ggA9p1uWF0e_MdYbPFf_TRzGpSSf9R3Q/exec';
   var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', B26001:'Maggie'};
+  var BRANDS = {
+    bek: { logo:'assets/bek_logo.png', name:'BEK RUNNING COACHING' },
+    wulixian: { logo:'assets/wulixian_logo.png', name:'無極限 RUNNING CLUB' }
+  };
+
+  function applyBrand(brand){
+    var b = BRANDS[brand] || BRANDS.bek;
+    document.getElementById('brandLogo').src = b.logo;
+    document.getElementById('brandName').textContent = b.name;
+    document.getElementById('footBrand').textContent = b.name;
+  }
 
   if (!CK) {
     document.getElementById('stat').textContent = '缺少教練金鑰';
@@ -111,40 +148,132 @@
     });
   }
 
+  var REPLY_TPLS = ['收到，好好休息', '持續觀察，有狀況回報', '辛苦了，恢復跑輕鬆跑就好', '明天見，加油'];
+
+  // 處置動作定義：{key, label, cls, action, detail}
+  var ACTIONS = [
+    { key:'injury', label:'登錄傷病史', cls:'injury', action:'log_injury' },
+    { key:'rest1', label:'休息1天', cls:'rest', action:'rest', detail:{days:1} },
+    { key:'rest3', label:'休息3天', cls:'rest', action:'rest', detail:{days:3} },
+    { key:'rest7', label:'休息7天', cls:'rest', action:'rest', detail:{days:7} },
+    { key:'pause', label:'暫停課表', cls:'pause', action:'pause' },
+    { key:'ease', label:'降強度(E跑3天)', cls:'ease', action:'ease', detail:{days:3} },
+    { key:'doctor', label:'建議就醫', cls:'doctor', action:'doctor' },
+    { key:'recover', label:'恢復許可', cls:'recover', action:'recover' }
+  ];
+
+  function sendAction(row, act, threadText, btn){
+    var payload = {mode:'coach_action', ck:CK, row:row, action:act.action};
+    if (act.detail) payload.detail = act.detail;
+    if (act.action === 'log_injury') payload.detail = payload.detail || {};
+    if (act.action === 'log_injury' && threadText) payload.detail.thread = threadText;
+    var oldTxt = btn.textContent;
+    btn.disabled = true; btn.textContent = '送出中…';
+    fetch(API + '?mode=coach_action', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j.ok) { toast(act.label + ' ✓ 已回覆學員並登錄處置'); load(); }
+        else { btn.disabled = false; btn.textContent = oldTxt; toast(j.error || '送出失敗', 'err'); }
+      })
+      .catch(function(){ btn.disabled = false; btn.textContent = oldTxt; toast('網路連線失敗', 'err'); });
+  }
+
   function load(){
     fetch(API + '?mode=coach_list&ck=' + encodeURIComponent(CK))
       .then(function(r){ return r.json(); })
       .then(function(j){
         if (!j.ok) { toast(j.error || '金鑰無效', 'err'); return; }
+        if (j.coach) {
+          applyBrand(j.coach.brand);
+          document.getElementById('brandName').textContent =
+            (j.coach.brand === 'wulixian' ? '無極限 RUNNING CLUB' : 'BEK RUNNING COACHING');
+        }
         var list = j.messages || [];
-        list.sort(function(a,b){ return (a.status==='待回覆' ? 0 : 1) - (b.status==='待回覆' ? 0 : 1); });
         var pending = list.filter(function(m){ return m.status !== '已回覆'; }).length;
         document.getElementById('stat').textContent = '待回覆 ' + pending + ' 則　/　共 ' + list.length + ' 則';
         var box = document.getElementById('list');
         if (!list.length) { box.innerHTML = '<div class="empty">還沒有學員訊息。</div>'; return; }
+
+        // 依 thread 分組（無 thread 每則獨立），組內依 row 順序
+        var groups = [];
+        var map = {};
+        list.forEach(function(m){
+          var t = m.thread || ('none_' + m.row);
+          if (!map[t]) { map[t] = []; groups.push(map[t]); }
+          map[t].push(m);
+        });
+
         var html = '';
-        list.forEach(function(m, idx){
-          var st = m.status === '已回覆' ? 'done' : 'pending';
-          var stTxt = m.status || '待回覆';
-          html += '<div class="msg ' + (m.status==='已回覆'?'':'pending') + '">'
-            + '<div class="top"><span class="who">' + esc(NAMES[m.sid] || m.sid) + '</span>'
-            + '<span class="date">' + esc(m.date) + '</span>'
-            + '<span class="tag">' + esc(m.cat) + '</span>'
-            + '<span class="st ' + st + '">' + esc(stTxt) + '</span></div>'
-            + '<div class="body">' + esc(m.text) + '</div>';
-          if (m.reply) {
-            html += '<div class="reply"><div class="lbl">教練回覆 ' + (m.replyDate ? '· ' + esc(m.replyDate) : '') + '</div>'
-              + esc(m.reply) + '</div>';
-          } else {
-            html += '<textarea id="tx' + idx + '" placeholder="輸入回覆內容…"></textarea>'
-              + '<button class="rbtn" id="bt' + idx + '" data-row="' + m.row + '" data-i="' + idx + '">回覆並標為已回覆</button>';
+        groups.forEach(function(g, gi){
+          var hasPending = g.some(function(m){ return m.status !== '已回覆'; });
+          var firstPending = null;
+          for (var k = 0; k < g.length; k++){ if (g[k].status !== '已回覆'){ firstPending = g[k]; break; } }
+          html += '<div class="thread ' + (hasPending ? 'has-pending' : '') + '">'
+            + '<div class="th-meta"><span class="who">' + esc(NAMES[g[0].sid] || g[0].sid) + '</span>'
+            + '<span class="date">' + esc(g[0].date) + '</span>'
+            + '<span class="st ' + (hasPending ? 'pending' : 'done') + '">'
+            + (hasPending ? '待回覆' : '已回覆') + '</span></div>';
+
+          g.forEach(function(m){
+            html += '<div class="tnode stu"><div class="who-line">學員</div><div class="bubble">'
+              + '<span class="cat-tag">' + esc(m.cat) + '</span>' + esc(m.text)
+              + '<div class="meta">' + esc(m.date) + '</div></div></div>';
+            if (m.reply && m.status === '已回覆') {
+              html += '<div class="tnode coa"><div class="who-line">教練</div><div class="bubble">'
+                + esc(m.reply) + '<div class="meta">' + esc(m.replyDate || '') + '</div></div></div>';
+            }
+          });
+
+          // 處置（僅有待回覆時）
+          if (firstPending) {
+            var threadText = g.map(function(m){ return '學員：' + m.text + (m.reply ? '\n教練：' + m.reply : ''); }).join('\n');
+            html += '<div class="actions">';
+            ACTIONS.forEach(function(a){
+              html += '<button class="act ' + a.cls + '" data-row="' + firstPending.row
+                + '" data-key="' + a.key + '">' + a.label + '</button>';
+            });
+            html += '</div>';
+
+            var dv = firstPending.disposal;
+            if (dv) {
+              html += '<div class="disposal-note">處置紀錄：' + esc(dv) + '</div>';
+            }
+
+            html += '<textarea id="tx' + gi + '" placeholder="輸入回覆內容…（可先用上方模板）"></textarea>'
+              + '<div class="tpls">';
+            REPLY_TPLS.forEach(function(tp, ti){
+              html += '<button type="button" class="tpl" data-tx="tx' + gi + '" data-t="' + esc(tp) + '">' + esc(tp) + '</button>';
+            });
+            html += '</div>'
+              + '<button class="rbtn" data-row="' + firstPending.row + '" data-gi="' + gi + '">回覆並標為已回覆</button>';
           }
           html += '</div>';
         });
         box.innerHTML = html;
+
+        // 模板點擊填入
+        box.querySelectorAll('button.tpl').forEach(function(b){
+          b.addEventListener('click', function(){
+            var ta = document.getElementById(b.dataset.tx);
+            if (ta) ta.value = b.dataset.t;
+          });
+        });
+
+        // 處置按鈕
+        box.querySelectorAll('button.act').forEach(function(b){
+          b.addEventListener('click', function(){
+            var a = ACTIONS.filter(function(x){ return x.key === b.dataset.key; })[0];
+            sendAction(parseInt(b.dataset.row,10), a, threadTextOf(b.dataset.row), b);
+          });
+        });
+
+        // 一般回覆
         box.querySelectorAll('button.rbtn').forEach(function(b){
           b.addEventListener('click', function(){
-            var i = b.dataset.i;
+            var i = b.dataset.gi;
             var t = document.getElementById('tx' + i);
             var txt = (t.value || '').trim();
             if (txt.length < 1) { toast('請輸入回覆內容', 'err'); return; }
@@ -163,6 +292,24 @@
         });
       })
       .catch(function(){ document.getElementById('list').innerHTML = '<div class="empty">網路連線失敗。</div>'; });
+  }
+
+  function threadTextOf(row){
+    // 由 DOM 就近取得該串完整問答（給登錄傷病史打包用）
+    var btn = null;
+    document.querySelectorAll('button.act').forEach(function(b){
+      if (b.dataset.row === String(row)) btn = b;
+    });
+    if (!btn) return '';
+    var thr = btn.closest('.thread');
+    if (!thr) return '';
+    var lines = [];
+    thr.querySelectorAll('.tnode').forEach(function(n){
+      var who = n.querySelector('.who-line') ? n.querySelector('.who-line').textContent : '';
+      var bub = n.querySelector('.bubble');
+      if (bub) lines.push(who + '：' + bub.childNodes[0].textContent.trim());
+    });
+    return lines.join('\n');
   }
 
   load();
