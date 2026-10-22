@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1b2a">
+<title>教練審查・課表執行</title>
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#0d1b2a; --card:#ffffff; --ink:#1c2b3a; --sub:#5c6b7a;
+    --accent:#c9a227; --accent-soft:#f5ecd7; --ok:#1f8a4c; --pending:#b06000;
+    --line:#e3e8ee; --radius:18px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;}
+  body{min-height:100vh;}
+  .wrap{max-width:640px; margin:0 auto; padding:0 16px calc(env(safe-area-inset-bottom) + 40px);}
+
+  header{background:linear-gradient(160deg,#0d1b2a 0%,#1b3a5c 100%); color:#fff;
+    padding:28px 20px 22px; border-bottom-left-radius:22px; border-bottom-right-radius:22px;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  header .logo{display:flex; align-items:center; gap:10px;}
+  header .logo img{width:44px; height:44px; border-radius:50%; object-fit:contain;
+    background:#fff; padding:3px;}
+  header .logo .name{font-weight:800; letter-spacing:2px; font-size:15px;}
+  header h1{margin:14px 0 4px; font-size:22px; font-weight:800;}
+  header .stat{margin-top:10px; display:inline-block; background:rgba(255,255,255,.14);
+    border-radius:20px; padding:5px 14px; font-size:14px; font-weight:700;}
+
+  .card{background:var(--card); border-radius:var(--radius); margin-top:16px;
+    padding:16px; box-shadow:0 3px 12px rgba(0,0,0,.12);}
+  .card h2{margin:0 0 12px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;}
+  .card h2 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
+
+  /* 學員卡片 */
+  .stu-card{border:1.5px solid var(--line); border-radius:16px; padding:12px 14px;
+    margin-bottom:12px; cursor:pointer; transition:border-color .15s;}
+  .stu-card:active{border-color:var(--accent);}
+  .stu-card .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .stu-card .code{font-weight:800; font-size:15px;}
+  .stu-card .recent{font-size:12px; color:var(--sub); margin-top:6px; line-height:1.5;}
+  .stu-card .recent b{color:var(--ink);}
+  .stu-card .count{font-size:11px; font-weight:800; margin-left:auto; background:var(--accent-soft);
+    color:#8a6d14; border-radius:10px; padding:2px 8px;}
+  .stu-card .badge{font-size:11px; font-weight:700; border-radius:8px; padding:2px 7px;}
+  .badge.run{background:#e2f4ea; color:var(--ok);}
+  .badge.rest{background:#eef1f4; color:var(--sub);}
+  .badge.off{background:#fdeeda; color:var(--pending);}
+
+  /* 執行紀錄 */
+  .tbl{width:100%; border-collapse:collapse; font-size:13px;}
+  .tbl th{text-align:left; font-size:11px; color:var(--sub); font-weight:700;
+    padding:6px 8px; border-bottom:2px solid var(--line); white-space:nowrap;}
+  .tbl td{padding:8px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45;}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl .cont{font-weight:700; min-width:150px;}
+  .tbl .note{color:var(--ink);}
+  .note-pre{white-space:pre-wrap; word-break:break-word;}
+  .note-fold{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+  .note-more{color:#8a6d14; font-weight:700; font-size:12px; cursor:pointer; margin-top:2px;}
+  .empty{text-align:center; color:var(--sub); padding:30px 10px; font-size:14px; line-height:1.7;}
+  .loading{text-align:center; color:#fff; padding:30px; font-size:15px;}
+  .err{background:#fdeeda; color:#b3261e; border-radius:12px; padding:12px; margin-top:16px; font-size:14px;}
+  .back{display:inline-block; margin:16px 0 0; color:#cfd8e3; font-size:14px; cursor:pointer;}
+  .ov-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;}
+  .ov-item{border:1.5px solid var(--line); border-radius:14px; padding:12px;}
+  .ov-item .code{font-weight:800; font-size:14px;}
+  .ov-item .m{font-size:12px; color:var(--sub); margin-top:6px; line-height:1.6;}
+  .ov-item .m b{color:var(--pending); font-size:13px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><img id="logo" alt="logo"><span class="name" id="brandName"></span></div>
+    <h1>教練審查・課表執行</h1>
+    <span class="stat" id="stat"></span>
+  </header>
+
+  <div class="loading" id="loading">載入中…</div>
+  <div class="err" id="err" style="display:none"></div>
+
+  <div id="list" style="display:none">
+    <div class="card">
+      <h2><span class="dot"></span>學員總覽<span class="count" id="stuCount"></span></h2>
+      <div id="stuCards"></div>
+    </div>
+  </div>
+
+  <div id="detail" style="display:none">
+    <div class="back" id="backBtn">← 返回學員總覽</div>
+    <div class="card">
+      <h2><span class="dot"></span><span id="detailTitle"></span></h2>
+      <div id="detailBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var API = 'https://script.google.com/macros/s/AKfycbwUchpwx31ZjTyw5wZ5s6KcF4IVnX2vfSd2j9ggA9p1uWF0e_MdYbPFf_TRzGpSSf9R3Q/exec';
+var CK = new URLSearchParams(location.search).get('ck') || '';
+var BRANDS = {
+  bek: { name: 'BEK RUNNING COACHING', logo: 'assets/bek_logo.png' },
+  wulixian: { name: '無極限長跑訓練中心', logo: 'assets/wulixian_logo.png' }
+};
+var state = { students: [], coach: null };
+
+function $(id){ return document.getElementById(id); }
+
+function show(id){ $(id).style.display = ''; }
+function hide(id){ $(id).style.display = 'none'; }
+
+function init(){
+  var q = new URLSearchParams(location.search);
+  var ck = q.get('ck') || q.get('key') || '';
+  if (!ck){ showErr('缺少教練金鑰（連結需帶 ck 參數）'); return; }
+  load();
+}
+
+function showErr(t){ $('err').textContent = t; $('err').style.display = ''; hide('loading'); }
+
+function load(){
+  fetch(API + '?mode=review_data&ck=' + encodeURIComponent(CK))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok){ showErr(d.error || '載入失敗'); return; }
+      hide('loading');
+      state.coach = d.coach;
+      var brand = BRANDS[d.coach.brand] || BRANDS.bek;
+      $('logo').src = brand.logo;
+      $('brandName').textContent = brand.name;
+      document.title = '教練審查・' + d.coach.name;
+      state.students = d.students || [];
+      if (d.coach.brand === 'wulixian') { renderOverview(); }
+      else { renderList(); }
+    })
+    .catch(function(e){ showErr('讀取失敗：' + e.message); });
+}
+
+function renderList(){
+  show('list'); hide('detail');
+  $('stuCount').textContent = state.students.length + ' 位學員';
+  $('stat').textContent = 'BEK 學員・課表執行';
+  var box = $('stuCards'); box.innerHTML = '';
+  if (!state.students.length){
+    box.innerHTML = '<div class="empty">目前尚無同步的課表執行資料<br>（同步工具每 14 天更新一次）</div>';
+    return;
+  }
+  state.students.forEach(function(s){
+    var last = s.rows[0];
+    var el = document.createElement('div');
+    el.className = 'stu-card';
+    var recent = last ? (last.date + ' · ' + esc(last.content || '')) : '尚無執行紀錄';
+    var badge = '';
+    if (last) {
+      badge = last.dist ? '<span class="badge run">已執行</span>'
+             : /休息|off|自主/.test(last.content||'') ? '<span class="badge rest">休息</span>'
+             : '<span class="badge off">待補</span>';
+    }
+    el.innerHTML = '<div class="top"><span class="code">' + esc(s.code) + '</span>'
+      + '<span class="count">' + s.rows.length + ' 筆</span>' + badge + '</div>'
+      + '<div class="recent"><b>最近：</b>' + esc(recent) + '</div>';
+    el.onclick = function(){ openDetail(s); };
+    box.appendChild(el);
+  });
+}
+
+function renderOverview(){
+  show('list'); hide('detail');
+  $('stuCount').textContent = state.students.length + ' 位學員';
+  $('stat').textContent = '無極限審核總覽';
+  var box = $('stuCards'); box.innerHTML = '';
+  if (!state.students.length){
+    box.innerHTML = '<div class="empty">尚無無極限學員資料<br>學員入學後，此處會顯示課表／評註待審總覽</div>';
+    return;
+  }
+  var grid = document.createElement('div'); grid.className = 'ov-grid';
+  state.students.forEach(function(s){
+    var item = document.createElement('div'); item.className = 'ov-item';
+    item.innerHTML = '<div class="code">' + esc(s.code) + '　' + esc(s.name || '') + '</div>'
+      + '<div class="m">課表待審：<b>' + (s.schedulePending || 0) + '</b></div>'
+      + '<div class="m">評註待審：<b>' + (s.commentPending || 0) + '</b></div>'
+      + (s.race ? '<div class="m">目標：' + esc(s.race) + '（' + esc(s.raceDate || '') + '）</div>' : '');
+    grid.appendChild(item);
+  });
+  box.appendChild(grid);
+}
+
+function openDetail(s){
+  hide('list'); show('detail');
+  $('detailTitle').textContent = s.code + '・課表執行與評註';
+  var body = $('detailBody'); body.innerHTML = '';
+  if (!s.rows.length){
+    body.innerHTML = '<div class="empty">尚無執行紀錄</div>';
+    return;
+  }
+  var tbl = document.createElement('table'); tbl.className = 'tbl';
+  var head = '<tr><th>日期</th><th>課表內容</th><th>距離</th><th>配速</th><th>心率</th><th>教練評註</th></tr>';
+  tbl.innerHTML = head;
+  s.rows.forEach(function(r){
+    var tr = document.createElement('tr');
+    var note = esc(r.note || '');
+    var noteCell = '';
+    if (note){
+      var short = note.length > 60;
+      noteCell = '<div class="note-pre' + (short ? ' note-fold" id="n-' + r.date.replace(/-/g,'') : '') + '">' + note + '</div>'
+        + (short ? '<div class="note-more" onclick="toggleNote(this)">展開全文 ▾</div>' : '');
+    }
+    tr.innerHTML = '<td>' + esc(r.date) + '<br><small>' + esc(r.dow || '') + '</small></td>'
+      + '<td class="cont">' + esc(r.content || '') + '</td>'
+      + '<td>' + esc(r.dist || '—') + '</td>'
+      + '<td>' + esc(r.pace || '—') + '</td>'
+      + '<td>' + esc(r.hr || '—') + '<small>' + (r.maxhr ? '/' + esc(r.maxhr) : '') + '</small></td>'
+      + '<td>' + noteCell + '</td>';
+    tbl.appendChild(tr);
+  });
+  body.appendChild(tbl);
+}
+
+function toggleNote(el){
+  var pre = el.previousElementSibling;
+  var folded = pre.classList.contains('note-fold');
+  pre.classList.toggle('note-fold');
+  el.textContent = folded ? '收合 ▲' : '展開全文 ▾';
+}
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+}); }
+
+$('backBtn').onclick = function(){ show('list'); hide('detail'); };
+init();
+</script>
+</body>
+</html>
