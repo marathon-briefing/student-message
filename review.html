@@ -76,7 +76,7 @@
 <div class="wrap">
   <header>
     <div class="logo"><img id="logo" alt="logo"><span class="name" id="brandName"></span></div>
-    <h1>教練審查・課表執行</h1>
+    <h1 id="h1Title">教練審查・課表執行</h1>
     <span class="stat" id="stat"></span>
   </header>
 
@@ -133,6 +133,11 @@ function load(){
       $('logo').src = brand.logo;
       $('brandName').textContent = brand.name;
       document.title = '教練審查・' + d.coach.name;
+      // 手機介面名稱＝「教練總覽」（網頁版維持「教練審查・課表執行」）2026-10-23
+      if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
+        document.title = '教練總覽';
+        $('h1Title').textContent = '教練總覽';
+      }
       state.students = d.students || [];
       if (d.coach.brand === 'wulixian') { renderOverview(); }
       else { renderList(); }
