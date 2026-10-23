@@ -1,6 +1,6 @@
 {
   "name": "BEK 學員訊息",
-  "short_name": "BEK 訊息",
+  "short_name": "學員訊息",
   "description": "請假、身體狀況或有事告訴教練，都在這裡寫訊息。",
   "lang": "zh-Hant",
   "start_url": "./index.html?from=home",
