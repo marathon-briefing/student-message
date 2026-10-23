@@ -34,6 +34,25 @@
   .card h2{margin:0 0 12px; font-size:16px; font-weight:800; display:flex; align-items:center; gap:8px;}
   .card h2 .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
 
+  /* 分頁切換 */
+  .seg{display:flex; gap:8px; margin-top:16px; background:var(--card); border-radius:var(--radius);
+    padding:6px; box-shadow:0 3px 12px rgba(0,0,0,.08);}
+  .seg-btn{flex:1; border:0; border-radius:12px; padding:11px 8px; font-size:14px; font-weight:800;
+    background:transparent; color:var(--sub); cursor:pointer; font-family:inherit;}
+  .seg-btn.sel{background:var(--accent-soft); color:#7a5f00; border:1.5px solid var(--accent);}
+
+  /* 訓練紀錄 */
+  .rec{background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:13px 14px; margin-bottom:10px;}
+  .rec .rd{font-size:13.5px; font-weight:800; color:var(--sub); display:flex; justify-content:space-between; align-items:baseline;}
+  .rec .rd .dow{font-size:11.5px; color:var(--sub); font-weight:600;}
+  .rec .rc{font-size:14px; font-weight:700; margin-top:5px;}
+  .rec .rm{font-size:12.5px; color:var(--sub); margin-top:4px;}
+  .rec .rn{margin-top:9px; border-top:1px dashed var(--line); padding-top:8px; font-size:13.5px; line-height:1.55;
+    color:var(--ink); white-space:pre-wrap; word-break:break-word;}
+  .rec .rn .tag{display:inline-block; background:var(--accent-soft); color:#7a5f00; font-size:11px; font-weight:800;
+    border-radius:6px; padding:1px 7px; margin-bottom:4px;}
+  .rec .no-note{color:#9aa6b2; font-size:12.5px;}
+
   /* 分類卡 */
   .cats{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .cat{border:1.5px solid var(--line); border-radius:14px; padding:12px; background:#fff;
@@ -93,6 +112,11 @@
     <p>要請假、身體有狀況，或有事想告訴教練，就在這裡寫下訊息。</p>
     <span class="who" id="who">…</span>
   </header>
+
+  <div class="seg" id="seg">
+    <button type="button" class="seg-btn sel" data-p="msg">寫訊息</button>
+    <button type="button" class="seg-btn" data-p="rec">我的訓練紀錄</button>
+  </div>
 
   <div class="card" id="formCard">
     <h2><span class="dot"></span>寫訊息給教練</h2>
@@ -170,9 +194,16 @@
     <div class="note">送出後，教練會在審查時看到並回覆；你隨時可以回來查看回覆。</div>
   </div>
 
-  <div class="card">
+  <div class="card" id="msgCard">
     <h2><span class="dot"></span>我的訊息與教練回覆</h2>
     <div id="history"><div class="empty">載入中…</div></div>
+  </div>
+
+  <div class="card" id="recCard" style="display:none;">
+    <h2><span class="dot"></span>我的訓練紀錄</h2>
+    <div class="note" style="margin-bottom:10px;">這裡顯示教練審查過的課表執行與評註，最新在前。</div>
+    <div id="recList"><div class="empty">載入中…</div></div>
+    <button class="send" id="recMore" style="display:none;">載入更早的紀錄</button>
   </div>
 
   <div class="foot" id="footBrand">BEK RUNNING COACHING</div>
@@ -184,7 +215,7 @@
   var SID = params.get('s') || params.get('sid') || '';
   var KEY = params.get('key') || '';
   var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', B26001:'Maggie'};
-  var API = 'https://script.google.com/macros/s/AKfycbwUchpwx31ZjTyw5wZ5s6KcF4IVnX2vfSd2j9ggA9p1uWF0e_MdYbPFf_TRzGpSSf9R3Q/exec';
+  var API = 'https://script.google.com/macros/s/AKfycbw5iP72cN7555CkApltGravd_IMhGSnFN2eYlz7qP4fHeIeaKzxd_vLpDbZs8x3unASHA/exec';
   var BRANDS = {
     bek: { logo:'assets/bek_logo.png', name:'BEK RUNNING COACHING' },
     wulixian: { logo:'assets/wulixian_logo.png', name:'無極限 RUNNING CLUB' }
@@ -337,6 +368,66 @@
       })
       .catch(function(){ box.innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>'; });
   }
+
+  // ---- 分頁切換：寫訊息 / 我的訓練紀錄 ----
+  var segBtns = document.querySelectorAll('#seg .seg-btn');
+  var recList = document.getElementById('recList');
+  var recCard = document.getElementById('recCard');
+  var msgCard = document.getElementById('msgCard');
+  var formCard = document.getElementById('formCard');
+  var recMore = document.getElementById('recMore');
+  var allRecs = [];
+  var recShown = 0;
+  var REC_PAGE = 14;
+  var recLoaded = false;
+
+  function showPanel(p){
+    segBtns.forEach(function(b){ b.classList.toggle('sel', b.getAttribute('data-p') === p); });
+    var isRec = (p === 'rec');
+    formCard.style.display = isRec ? 'none' : '';
+    msgCard.style.display = isRec ? 'none' : '';
+    recCard.style.display = isRec ? '' : 'none';
+    if (isRec && !recLoaded) loadRecords();
+  }
+  segBtns.forEach(function(b){
+    b.addEventListener('click', function(){ showPanel(b.getAttribute('data-p')); });
+  });
+
+  function loadRecords(){
+    recLoaded = true;
+    fetch(API + '?mode=my_records&s=' + encodeURIComponent(SID) + '&key=' + encodeURIComponent(KEY))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (!j.ok) { recList.innerHTML = '<div class="empty">無法讀取訓練紀錄。</div>'; return; }
+        allRecs = j.records || [];
+        recShown = 0;
+        renderRecords();
+      })
+      .catch(function(){ recList.innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>'; });
+  }
+
+  function renderRecords(){
+    if (!allRecs.length) { recList.innerHTML = '<div class="empty">還沒有訓練紀錄。<br>開始訓練後，這裡會顯示教練的評註。</div>'; recMore.style.display = 'none'; return; }
+    var slice = allRecs.slice(0, recShown + REC_PAGE);
+    recShown = slice.length;
+    recList.innerHTML = slice.map(function(r){
+      var meta = [r.dist ? r.dist + ' K' : '', r.pace ? r.pace : '', r.hr ? '心率 ' + r.hr : ''].filter(Boolean).join('　');
+      var noteHtml = '';
+      if (r.note) {
+        noteHtml = '<div class="rn"><span class="tag">教練評註</span>' + esc(r.note) + '</div>';
+      } else {
+        noteHtml = '<div class="rn no-note">尚無評註</div>';
+      }
+      return '<div class="rec">'
+        + '<div class="rd"><span>' + esc(r.date) + '</span><span class="dow">' + esc(r.dow || '') + '</span></div>'
+        + '<div class="rc">' + esc(r.content || '') + '</div>'
+        + (meta ? '<div class="rm">' + meta + '</div>' : '')
+        + noteHtml
+        + '</div>';
+    }).join('');
+    recMore.style.display = (recShown < allRecs.length) ? '' : 'none';
+  }
+  recMore.addEventListener('click', renderRecords);
 
   loadHistory();
   // 每 20 秒自動刷新回覆
