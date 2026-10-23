@@ -160,7 +160,7 @@ function renderList(){
              : /休息|off|自主/.test(last.content||'') ? '<span class="badge rest">休息</span>'
              : '<span class="badge off">待補</span>';
     }
-    el.innerHTML = '<div class="top"><span class="code">' + esc(s.code) + '</span>'
+    el.innerHTML = '<div class="top"><span class="code">' + esc(s.code) + '　' + esc(s.name || '') + '</span>'
       + '<span class="count">' + s.rows.length + ' 筆</span>' + badge + '</div>'
       + '<div class="recent"><b>最近：</b>' + esc(recent) + '</div>';
     el.onclick = function(){ openDetail(s); };
@@ -191,7 +191,7 @@ function renderOverview(){
 
 function openDetail(s){
   hide('list'); show('detail');
-  $('detailTitle').textContent = s.code + '・課表執行與評註';
+  $('detailTitle').textContent = s.code + ' ' + (s.name || '') + '・課表執行與評註';
   var body = $('detailBody'); body.innerHTML = '';
   if (!s.rows.length){
     body.innerHTML = '<div class="empty">尚無執行紀錄</div>';
