@@ -133,10 +133,10 @@ function load(){
       $('logo').src = brand.logo;
       $('brandName').textContent = brand.name;
       document.title = '教練審查・' + d.coach.name;
-      // 手機介面名稱＝「教練總覽」（網頁版維持「教練審查・課表執行」）2026-10-23
+      // 手機介面名稱＝「教練總覽 App」（網頁版維持「教練審查・課表執行」）2026-10-23
       if (window.matchMedia && window.matchMedia('(max-width: 768px)').matches) {
-        document.title = '教練總覽';
-        $('h1Title').textContent = '教練總覽';
+        document.title = '教練總覽 App';
+        $('h1Title').textContent = '教練總覽 App';
       }
       state.students = d.students || [];
       if (d.coach.brand === 'wulixian') { renderOverview(); }
