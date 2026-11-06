@@ -125,17 +125,17 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
 
-  // TODO: 接後端端點（Garmin OAuth 代理）
-  // 目前先顯示成功畫面，後端接好後改為實際 POST
-  try {
-    // const res = await fetch('https://your-backend.com/garmin/auth', {
-    //   method: 'POST',
-    //   headers: {'Content-Type': 'application/json'},
-    //   body: JSON.stringify({email, password})
-    // });
-    // if (!res.ok) throw new Error('auth failed');
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
 
-    // 暫時：直接顯示成功（後端待接）
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({mode: 'garmin_auth', email, password})
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || '授權失敗');
+
     document.getElementById('form-view').style.display = 'none';
     document.getElementById('success-view').style.display = 'block';
   } catch (err) {
