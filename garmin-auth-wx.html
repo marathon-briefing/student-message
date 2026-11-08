@@ -130,7 +130,8 @@
     document.getElementById('link_sid').value = sid;
     document.getElementById('link_key').value = key;
     document.getElementById('link-identity').style.display = 'block';
-    document.getElementById('link-identity-name').textContent = sid;
+    var nm = (p.get('name') || '').trim();
+    document.getElementById('link-identity-name').textContent = nm ? (nm + '（' + sid + '）') : sid;
   }
 })();
 
