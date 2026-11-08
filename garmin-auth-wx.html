@@ -106,7 +106,10 @@
         <input type="email" id="email" placeholder="you@example.com" required>
         <label>Garmin 密碼</label>
         <input type="password" id="password" placeholder="你的 Garmin Connect 密碼" required>
-        <button type="submit" id="submit-btn">授權無極限讀取訓練資料</button>
+        <label>兩階段驗證碼（選填）</label>
+        <input type="text" id="mfa" inputmode="numeric" autocomplete="one-time-code" placeholder="Garmin 要求驗證碼時才填，沒有就留空">
+        <p class="hint" style="font-size:9pt;color:#666;margin:-6px 0 10px;">沒有開啟兩階段驗證的人，這一欄留空直接按授權即可。<br>若送出後 Garmin 寄驗證碼給你，回來把碼填進這一欄，再按一次授權。</p>
+<button type="submit" id="submit-btn">授權無極限讀取訓練資料</button>
       </form>
     </div>
 
@@ -145,6 +148,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
   const password = document.getElementById('password').value;
   const linkSid = document.getElementById('link_sid').value;
   const linkKey = document.getElementById('link_key').value;
+  const mfa = (document.getElementById('mfa') || {}).value || '';
 
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
 
@@ -152,7 +156,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({mode: 'garmin_auth', email, password, brand: 'wulixian', studentCode: linkSid, s: linkSid, key: linkKey})
+      body: JSON.stringify({mode: 'garmin_auth', email, password, mfa, brand: 'wulixian', studentCode: linkSid, s: linkSid, key: linkKey})
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '授權失敗');
