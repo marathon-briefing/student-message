@@ -54,9 +54,46 @@
   .success p { color: #94a3b8; font-size: 14px; }
 
   .note { font-size: 12px; color: #64748b; text-align: center; margin-top: 16px; }
+
+  /* 品牌切換（?b=wx）：無極限青綠，母版樣式不動 */
+  html.brand-wx .card h2 { color: #00c2a8; }
+  html.brand-wx input:focus { border-color: #00c2a8; }
+  html.brand-wx button { background: #00c2a8; }
 </style>
 </head>
 <body>
+<script>
+/* 品牌參數：?b=wx → 無極限；未帶參數維持 BEK */
+(function(){
+  var b = (new URLSearchParams(location.search).get('b') || '').toLowerCase();
+  var WX = (b === 'wx' || b === 'wulixian' || b === 'w');
+  var T = WX ? {
+    title: 'Garmin 授權｜無極限長跑訓練中心',
+    logo: 'assets/wulixian_logo.png',
+    logoAlt: '無極限長跑訓練中心',
+    sub: '無極限長跑訓練中心',
+    btn: '授權無極限讀取訓練資料'
+  } : {
+    title: 'Garmin 授權｜BEK RUNNING COACHING',
+    logo: 'assets/bek_logo.png',
+    logoAlt: 'BEK',
+    sub: 'BEK RUNNING COACHING',
+    btn: '授權 BEK 讀取訓練資料'
+  };
+  window.__BRAND = T;
+  window.__IS_WX = WX;
+  document.addEventListener('DOMContentLoaded', function(){
+    if (WX) document.documentElement.classList.add('brand-wx');
+    document.title = T.title;
+    var lg = document.querySelector('.header .logo');
+    if (lg) { lg.src = T.logo; lg.alt = T.logoAlt; }
+    var sb = document.querySelector('.header .sub');
+    if (sb) sb.textContent = T.sub;
+    var bt = document.getElementById('submit-btn');
+    if (bt && bt.textContent.indexOf('授權中') === -1) bt.textContent = T.btn;
+  });
+})();
+</script>
 <div class="container">
   <div class="header">
     <img class="logo" src="assets/bek_logo.png" alt="BEK">
@@ -140,7 +177,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
   } catch (err) {
     alert('授權失敗：' + err.message + '\n\n請確認 Garmin 帳號密碼是否正確，或聯絡教練協助。');
     btn.disabled = false;
-    btn.textContent = '授權 BEK 讀取訓練資料';
+    btn.textContent = (window.__BRAND && window.__BRAND.btn) || '授權 BEK 讀取訓練資料';
   }
 });
 </script>
