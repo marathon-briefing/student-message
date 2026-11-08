@@ -132,7 +132,13 @@
 
     <div class="card">
       <h2>輸入你的 Garmin 帳號</h2>
+      <div id="link-identity" style="display:none;background:#EEF2F8;border-left:4px solid #1F3864;padding:12px 14px;margin-bottom:14px;border-radius:6px;">
+        <div style="font-size:12px;color:#64748b;">你正在為以下學員授權</div>
+        <div id="link-identity-name" style="font-size:16px;font-weight:700;color:#0f172a;margin-top:4px;"></div>
+      </div>
       <form id="auth-form">
+        <input type="hidden" id="link_sid">
+        <input type="hidden" id="link_key">
         <label>Garmin 註冊 Email</label>
         <input type="email" id="email" placeholder="you@example.com" required>
         <label>Garmin 密碼</label>
@@ -152,6 +158,20 @@
 </div>
 
 <script>
+// 個人化連結：從 URL 讀學員編號、驗證碼、姓名（2026-11-08）
+(function(){
+  var p = new URLSearchParams(location.search);
+  var sid = (p.get('s') || '').trim();
+  var key = (p.get('key') || '').trim();
+  if (sid && key) {
+    document.getElementById('link_sid').value = sid;
+    document.getElementById('link_key').value = key;
+    document.getElementById('link-identity').style.display = 'block';
+    var nm = (p.get('name') || '').trim();
+    document.getElementById('link-identity-name').textContent = nm ? (nm + '（' + sid + '）') : sid;
+  }
+})();
+
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('submit-btn');
@@ -160,6 +180,8 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
 
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
+  const linkSid = document.getElementById('link_sid').value;
+  const linkKey = document.getElementById('link_key').value;
 
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
 
@@ -167,7 +189,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({mode: 'garmin_auth', email, password})
+      body: JSON.stringify({mode: 'garmin_auth', email, password, studentCode: linkSid, s: linkSid, key: linkKey})
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '授權失敗');
