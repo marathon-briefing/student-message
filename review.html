@@ -82,6 +82,13 @@
   .ov-detail .row{display:flex; gap:8px; flex-wrap:wrap;}
   .ov-detail .k{color:var(--sub); min-width:72px;}
   .ov-detail .v{font-weight:700; word-break:break-word; flex:1;}
+  .ov-sec{font-size:12px; font-weight:800; color:var(--sub); margin:12px 0 6px;}
+  .ov-list{margin:0; padding:0; list-style:none;}
+  .ov-list li{display:flex; gap:8px; padding:7px 0; border-bottom:1px solid #f1f4f7;
+    font-size:12.5px; line-height:1.55;}
+  .ov-list li:last-child{border-bottom:0;}
+  .ov-list .d{color:#8a6d14; font-weight:800; white-space:nowrap; min-width:74px;}
+  .ov-list .c{flex:1; word-break:break-word; color:var(--ink);}
 </style>
 </head>
 <body>
@@ -229,15 +236,25 @@ function toggleWxDetail(item, s){
   if (opened){ item.classList.remove('is-open'); opened.remove();
     var h = item.querySelector('.hint'); if (h) h.textContent = '點此查看待審明細'; return; }
   var rows = '';
-  rows += '<div class="row"><span class="k">課表待審</span><span class="v">'
-        + (s.schedulePending || 0) + ' 筆'
-        + (s.scheduleSheet ? '（分頁：' + esc(s.scheduleSheet) + '）' : '') + '</span></div>';
-  rows += '<div class="row"><span class="k">評註待審</span><span class="v">'
-        + (s.commentPending || 0) + ' 筆'
-        + (s.commentSheet ? '（分頁：' + esc(s.commentSheet) + '）' : '') + '</span></div>';
-  if (s.recentConfirm) rows += '<div class="row"><span class="k">最近確認</span><span class="v">' + esc(s.recentConfirm) + '</span></div>';
   if (s.race) rows += '<div class="row"><span class="k">目標賽事</span><span class="v">' + esc(s.race)
         + (s.raceDate ? '（' + esc(s.raceDate) + '）' : '') + '</span></div>';
+  if (s.recentConfirm) rows += '<div class="row"><span class="k">最近確認</span><span class="v">' + esc(s.recentConfirm) + '</span></div>';
+
+  function listBlock(title, arr, fallbackCount) {
+    arr = arr || [];
+    if (!arr.length) {
+      return '<div class="ov-sec">' + title + '（' + (fallbackCount || 0) + ' 筆）</div>'
+        + '<div class="ov-list"><li><span class="c">查無逐筆清單</span></li></div>';
+    }
+    var h = '<div class="ov-sec">' + title + '（' + arr.length + ' 筆）</div><ul class="ov-list">';
+    arr.forEach(function (it) {
+      h += '<li><span class="d">' + esc(it.date) + (it.dow ? ' ' + esc(it.dow) : '') + '</span>'
+         + '<span class="c">' + esc(it.content || '') + '</span></li>';
+    });
+    return h + '</ul>';
+  }
+  rows += listBlock('課表待審', s.scheduleItems, s.schedulePending);
+  rows += listBlock('評註待審', s.commentItems, s.commentPending);
   var d = document.createElement('div');
   d.className = 'ov-detail';
   d.innerHTML = rows;
