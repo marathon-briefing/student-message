@@ -144,11 +144,22 @@
         <input type="email" id="email" placeholder="you@example.com" required>
         <label>Garmin 密碼</label>
         <input type="password" id="password" placeholder="你的 Garmin Connect 密碼" required>
-        <label>兩階段驗證碼（選填）</label>
-        <input type="text" id="mfa" inputmode="numeric" autocomplete="one-time-code" placeholder="Garmin 要求驗證碼時才填，沒有就留空">
-        <p class="hint" style="font-size:9pt;color:#666;margin:-6px 0 10px;">沒有開啟兩階段驗證的人，這一欄留空直接按授權即可。<br>若送出後 Garmin 寄驗證碼給你，回來把碼填進這一欄，再按一次授權。</p>
-<button type="submit" id="submit-btn">授權 BEK 讀取訓練資料</button>
+        <button type="submit" id="submit-btn">授權 BEK 讀取訓練資料</button>
       </form>
+
+      <div style="margin:20px 0 16px; border-top:1px dashed #475569;"></div>
+
+      <div id="mfa-section">
+        <p style="font-size:13px;color:#94a3b8;margin-bottom:8px;line-height:1.6;">
+          <strong style="color:#cbd5e1;">如果你的 Garmin 有開兩階段驗證：</strong><br>
+          按上面的授權後，Garmin 會寄一組驗證碼到你的手機或 Email。<br>
+          收到後把碼填在下面，再按「送出驗證碼」。<br>
+          沒有開兩階段驗證的人，不用理這個區塊。
+        </p>
+        <label>兩階段驗證碼</label>
+        <input type="text" id="mfa" inputmode="numeric" autocomplete="one-time-code" placeholder="輸入 Garmin 寄給你的 6 位數驗證碼">
+        <button type="button" id="mfa-btn" style="background:#334155;color:#e2e8f0;margin-top:4px;">送出驗證碼</button>
+      </div>
     </div>
 
     <p class="note">資料僅用於訓練評估與課表調整，不會分享給第三方。</p>
@@ -178,15 +189,26 @@
 
 document.getElementById('auth-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  await doAuth('');
+});
+
+document.getElementById('mfa-btn').addEventListener('click', async () => {
+  const mfa = document.getElementById('mfa').value.trim();
+  if (!mfa) { alert('請先輸入 Garmin 寄給你的驗證碼'); return; }
+  await doAuth(mfa);
+});
+
+async function doAuth(mfaCode) {
   const btn = document.getElementById('submit-btn');
+  const mfaBtn = document.getElementById('mfa-btn');
   btn.disabled = true;
   btn.textContent = '授權中...';
+  if (mfaBtn) mfaBtn.disabled = true;
 
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
   const linkSid = document.getElementById('link_sid').value;
   const linkKey = document.getElementById('link_key').value;
-  const mfa = (document.getElementById('mfa') || {}).value || '';
 
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
 
@@ -194,7 +216,7 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     const res = await fetch(GAS_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify({mode: 'garmin_auth', email, password, mfa, studentCode: linkSid, s: linkSid, key: linkKey})
+      body: JSON.stringify({mode: 'garmin_auth', email, password, mfa: mfaCode, studentCode: linkSid, s: linkSid, key: linkKey})
     });
     const data = await res.json();
     if (!data.ok) throw new Error(data.error || '授權失敗');
@@ -205,8 +227,9 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
     alert('授權失敗：' + err.message + '\n\n請確認 Garmin 帳號密碼是否正確，或聯絡教練協助。');
     btn.disabled = false;
     btn.textContent = (window.__BRAND && window.__BRAND.btn) || '授權 BEK 讀取訓練資料';
+    if (mfaBtn) mfaBtn.disabled = false;
   }
-});
+}
 </script>
 </body>
 </html>
