@@ -66,11 +66,22 @@
   .loading{text-align:center; color:#fff; padding:30px; font-size:15px;}
   .err{background:#fdeeda; color:#b3261e; border-radius:12px; padding:12px; margin-top:16px; font-size:14px;}
   .back{display:inline-block; margin:16px 0 0; color:#cfd8e3; font-size:14px; cursor:pointer;}
-  .ov-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px;}
-  .ov-item{border:1.5px solid var(--line); border-radius:14px; padding:12px;}
-  .ov-item .code{font-weight:800; font-size:14px;}
-  .ov-item .m{font-size:12px; color:var(--sub); margin-top:6px; line-height:1.6;}
+  .ov-grid{display:grid; grid-template-columns:1fr; gap:12px;}
+  @media (min-width:560px){ .ov-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));} }
+  .ov-item{border:1.5px solid var(--line); border-radius:14px; padding:12px 14px;
+    cursor:pointer; transition:border-color .15s, background .15s;}
+  .ov-item:active{border-color:var(--accent); background:#fdfaf2;}
+  .ov-item.is-open{border-color:var(--accent); background:#fdfaf2;}
+  .ov-item .code{font-weight:800; font-size:15px;}
+  .ov-item .m{font-size:12.5px; color:var(--sub); margin-top:6px; line-height:1.6;}
   .ov-item .m b{color:var(--pending); font-size:13px;}
+  .ov-item .hint{font-size:11.5px; color:#8a6d14; font-weight:700; margin-top:8px;}
+  /* 無極限待審明細（點開後展開，說明資料在哪個分頁、多少筆） */
+  .ov-detail{margin-top:10px; border-top:1px dashed var(--line); padding-top:10px;
+    font-size:12.5px; line-height:1.7; color:var(--ink);}
+  .ov-detail .row{display:flex; gap:8px; flex-wrap:wrap;}
+  .ov-detail .k{color:var(--sub); min-width:72px;}
+  .ov-detail .v{font-weight:700; word-break:break-word; flex:1;}
 </style>
 </head>
 <body>
@@ -177,10 +188,8 @@ function renderList(){
     var grid = document.createElement('div'); grid.className = 'ov-grid';
     state.wxOverview.forEach(function(s){
       var item = document.createElement('div'); item.className = 'ov-item';
-      item.innerHTML = '<div class="code">' + esc(s.code) + '　' + esc(s.name || '') + '</div>'
-        + '<div class="m">課表待審：<b>' + (s.schedulePending || 0) + '</b></div>'
-        + '<div class="m">評註待審：<b>' + (s.commentPending || 0) + '</b></div>'
-        + (s.race ? '<div class="m">目標：' + esc(s.race) + '（' + esc(s.raceDate || '') + '）</div>' : '');
+      item.innerHTML = wxSummaryHtml(s) + '<div class="hint">點此查看待審明細</div>';
+      item.onclick = function(){ toggleWxDetail(item, s); };
       grid.appendChild(item);
     });
     box.appendChild(grid);
@@ -199,13 +208,42 @@ function renderOverview(){
   var grid = document.createElement('div'); grid.className = 'ov-grid';
   state.students.forEach(function(s){
     var item = document.createElement('div'); item.className = 'ov-item';
-    item.innerHTML = '<div class="code">' + esc(s.code) + '　' + esc(s.name || '') + '</div>'
-      + '<div class="m">課表待審：<b>' + (s.schedulePending || 0) + '</b></div>'
-      + '<div class="m">評註待審：<b>' + (s.commentPending || 0) + '</b></div>'
-      + (s.race ? '<div class="m">目標：' + esc(s.race) + '（' + esc(s.raceDate || '') + '）</div>' : '');
+      item.innerHTML = wxSummaryHtml(s) + '<div class="hint">點此查看待審明細</div>';
+      item.onclick = function(){ toggleWxDetail(item, s); };
     grid.appendChild(item);
   });
   box.appendChild(grid);
+}
+
+function wxSummaryHtml(s){
+  return '<div class="code">' + esc(s.code) + '　' + esc(s.name || '') + '</div>'
+    + '<div class="m">課表待審：<b>' + (s.schedulePending || 0) + '</b></div>'
+    + '<div class="m">評註待審：<b>' + (s.commentPending || 0) + '</b></div>'
+    + (s.race ? '<div class="m">目標：' + esc(s.race) + '（' + esc(s.raceDate || '') + '）</div>' : '');
+}
+
+// 2026-11-09 教練反映：無極限總覽卡片在手機上顯示不全、也點不進去。
+// 現改為可點開，展開該學員待審資料的分頁與筆數（明細清單由審查總表分頁提供）。
+function toggleWxDetail(item, s){
+  var opened = item.querySelector('.ov-detail');
+  if (opened){ item.classList.remove('is-open'); opened.remove();
+    var h = item.querySelector('.hint'); if (h) h.textContent = '點此查看待審明細'; return; }
+  var rows = '';
+  rows += '<div class="row"><span class="k">課表待審</span><span class="v">'
+        + (s.schedulePending || 0) + ' 筆'
+        + (s.scheduleSheet ? '（分頁：' + esc(s.scheduleSheet) + '）' : '') + '</span></div>';
+  rows += '<div class="row"><span class="k">評註待審</span><span class="v">'
+        + (s.commentPending || 0) + ' 筆'
+        + (s.commentSheet ? '（分頁：' + esc(s.commentSheet) + '）' : '') + '</span></div>';
+  if (s.recentConfirm) rows += '<div class="row"><span class="k">最近確認</span><span class="v">' + esc(s.recentConfirm) + '</span></div>';
+  if (s.race) rows += '<div class="row"><span class="k">目標賽事</span><span class="v">' + esc(s.race)
+        + (s.raceDate ? '（' + esc(s.raceDate) + '）' : '') + '</span></div>';
+  var d = document.createElement('div');
+  d.className = 'ov-detail';
+  d.innerHTML = rows;
+  item.appendChild(d);
+  item.classList.add('is-open');
+  var h2 = item.querySelector('.hint'); if (h2) h2.textContent = '點此收合';
 }
 
 function openDetail(s){
