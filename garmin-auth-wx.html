@@ -112,16 +112,14 @@
 
       <div style="margin:20px 0 16px; border-top:1px dashed #475569;"></div>
 
-      <div id="mfa-section">
+      <div id="mfa-section" style="display:none;margin-top:18px;border-top:1px dashed #334155;padding-top:16px;">
         <p style="font-size:13px;color:#94a3b8;margin-bottom:8px;line-height:1.6;">
-          <strong style="color:#cbd5e1;">如果你的 Garmin 有開兩階段驗證：</strong><br>
-          按上面的授權後，Garmin 會寄一組驗證碼到你的手機或 Email。<br>
-          收到後把碼填在下面，再按「送出驗證碼」。<br>
-          沒有開兩階段驗證的人，不用理這個區塊。
-          <span style="color:#f87171;">⚠ 驗證碼有時效限制，收到後請立即填入，以免過期需重新申請。</span>
+          <strong style="color:#e2e8f0;">如果 Garmin 要求一組驗證碼：</strong><br>
+          填入 Garmin 寄給你的數字，再按下方按鈕。<br>
+          這組號碼有三十分鐘效期，收到後盡快填寫。
         </p>
-        <label>兩階段驗證碼</label>
-        <input type="text" id="mfa" inputmode="numeric" autocomplete="one-time-code" placeholder="輸入 Garmin 寄給你的 6 位數驗證碼">
+        <label>驗證碼</label>
+        <input type="text" id="mfa" inputmode="numeric" autocomplete="one-time-code" placeholder="Garmin 寄給你的數字">
         <button type="button" id="mfa-btn" style="background:#334155;color:#e2e8f0;margin-top:4px;">送出驗證碼</button>
       </div>
     </div>
@@ -131,9 +129,16 @@
 
   <div class="success" id="success-view">
     <div class="check">✅</div>
-    <h2>授權成功</h2>
-    <p>你的 Garmin 訓練資料已連接。<br>從今天起跑完自動同步，不用再截圖上傳。<br><br>可以關閉此頁面了。</p>
+    <h2>已收到你的授權</h2>
+    <p>我們會在兩分鐘內完成連接。<br>完成後會寄信通知你，<strong>不需要再做任何事</strong>。<br><br>可以關閉此頁面了。</p>
+    <p style="margin-top:14px">如果你的 Garmin 帳號需要多一組驗證碼，<br>我們會另外寄一封信給你填寫。</p>
   </div>
+
+  <div id="warn" style="display:none;margin-bottom:16px">
+    <p style="color:#f87171;font-size:13px;">授權服務目前沒有在運作，請直接聯絡教練，或稍後再試。</p>
+  </div>
+
+  <p class="note" id="beat-note"></p></div>
 </div>
 
 <script>
@@ -194,6 +199,35 @@ async function doAuth(mfaCode) {
     if (mfaBtn) mfaBtn.disabled = false;
   }
 }
+
+// 2026-11-09 方案 B：服務心跳與補碼入口
+const GAS_URL_Q = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
+(function(){
+  const p = new URLSearchParams(location.search);
+  if (p.get('mfa') === '1') {
+    const sec = document.getElementById('mfa-section');
+    if (sec) sec.style.display = 'block';
+    const f = document.getElementById('mfa');
+    if (f) f.focus();
+  }
+})();
+(async () => {
+  try {
+    const r = await fetch(GAS_URL_Q, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({mode: 'queue_status'})
+    });
+    const d = await r.json();
+    const note = document.getElementById('beat-note');
+    if (d.beat) note.textContent = '授權服務最近一次處理：' + d.beat;
+    const last = d.beat ? new Date(d.beat.replace(' ', 'T')) : null;
+    if (!last || (Date.now() - last.getTime() > 30 * 60 * 1000)) {
+      const w = document.getElementById('warn');
+      if (w) w.style.display = 'block';
+    }
+  } catch (e) {}
+})();
 </script>
 </body>
 </html>
