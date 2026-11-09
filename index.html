@@ -183,7 +183,6 @@
   var params = new URLSearchParams(location.search);
   var SID = params.get('s') || params.get('sid') || '';
   var KEY = params.get('key') || '';
-  var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', B26001:'Maggie', M26007:'謝依凡', M26008:'張世旻', WA26009:'Ginger'};
   var API = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
   var BRANDS = {
     bek: { logo:'assets/bek_logo.png', name:'BEK RUNNING COACHING' },
@@ -203,7 +202,7 @@
     document.getElementById('history').innerHTML = '<div class="empty">請使用教練發給你的專屬連結。</div>';
     return;
   }
-  document.getElementById('who').textContent = '學員 ' + (NAMES[SID] || SID);
+  document.getElementById('who').textContent = '學員 ' + SID;  // 姓名不內嵌，避免名冊副本
   var formCard = document.getElementById('formCard');
 
   // 分類選擇 → 顯示對應表單

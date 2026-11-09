@@ -118,7 +118,6 @@
   var params = new URLSearchParams(location.search);
   var CK = params.get('ck') || '';
   var API = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
-  var NAMES = {M26001:'王奕翔', M26002:'林洋樂', M26004:'Yumi', M26005:'Stacy', M26006:'蕭克丞', M26007:'謝依凡', M26008:'張世旻', B26001:'Maggie', WA26009:'Ginger', T26004:'阿宣', KC888:'Kevin'};
   var BRANDS = {
     bek: { logo:'assets/bek_logo.png', name:'BEK RUNNING COACHING' },
     wulixian: { logo:'assets/wulixian_logo.png', name:'無極限 RUNNING CLUB' }
@@ -145,9 +144,9 @@
   }
 
   // 2026-11-09 教練反映：卡片只看到編號認不出是誰。改為「名字（編號）」，
-  // 名字優先用後端回傳（GAS STUDENT_NAMES），前端名冊僅作離線備援。
+  // 姓名唯一來源：後端主檔（讀基本資料檔產生的學員主檔）。前端不留名冊副本。
   function nameLabel(m){
-    var nm = (m && m.name) || NAMES[(m && m.sid)] || '';
+    var nm = (m && m.name) || '';  // 姓名唯一來源：後端主檔
     if (!nm) return String((m && m.sid) || '');
     return nm + '（' + (m.sid || '') + '）';
   }
