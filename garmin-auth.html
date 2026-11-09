@@ -199,10 +199,39 @@ document.getElementById('auth-form').addEventListener('submit', async (e) => {
 });
 
 document.getElementById('mfa-btn').addEventListener('click', async () => {
+  await doMfa();
+});
+
+// 2026-11-09：補碼只送驗證碼，不走整份帳密重送。
+// 原本呼叫 doAuth(mfa)，但 doAuth 要求 email+password，學員從通知信點進來時
+// 帳密欄是空的，送出必被 GAS 以「Email 或密碼不可空白」擋掉，補碼永遠送不進去。
+async function doMfa() {
   const mfa = document.getElementById('mfa').value.trim();
   if (!mfa) { alert('請先輸入 Garmin 寄給你的驗證碼'); return; }
-  await doAuth(mfa);
-});
+  const sid = document.getElementById('link_sid').value;
+  const key = document.getElementById('link_key').value;
+  const btn = document.getElementById('mfa-btn');
+  btn.disabled = true;
+  btn.textContent = '送出中...';
+  try {
+    const r = await fetch('https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec', {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify({mode: 'garmin_mfa', code: sid, s: sid, key: key, mfa: mfa})
+    });
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.error || '驗證碼送出失敗');
+    document.getElementById('mfa-section').style.display = 'none';
+    const note = document.getElementById('beat-note');
+    if (note) note.textContent = '驗證碼已送出，系統會在一到兩分鐘內完成授權，完成後會再通知你。';
+    alert('驗證碼已收到，系統會在一到兩分鐘內完成授權，完成後會再通知你。');
+  } catch (e) {
+    alert('驗證碼送出失敗：' + e.message + '\n\n請確認是從通知信裡的連結進來，或回覆通知信找教練協助。');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '送出驗證碼';
+  }
+}
 
 async function doAuth(mfaCode) {
   const btn = document.getElementById('submit-btn');
