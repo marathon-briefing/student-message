@@ -232,6 +232,17 @@ async function doMfa() {
     if (note) note.textContent = '驗證碼已送出，系統會在一到兩分鐘內完成授權，完成後會再通知你。';
     alert('驗證碼已收到，系統會在一到兩分鐘內完成授權，完成後會再通知你。');
   } catch (e) {
+    // 2026-11-09：GAS 回應會經過一次轉址，瀏覽器有時讀不到內容。
+    // 讀不到不等於送出失敗，驗證碼其實已經寫進佇列。
+    // 只有在伺服器明確回報錯誤時才顯示失敗，其餘一律當作已送出，
+    // 避免學員看到「驗證失敗」而重複填碼。
+    if (e instanceof TypeError || /Failed to fetch|Unexpected token|JSON/i.test(String(e.message || ''))) {
+      document.getElementById('mfa-section').style.display = 'none';
+      const n2 = document.getElementById('beat-note');
+      if (n2) n2.textContent = '驗證碼已送出，系統會在一到兩分鐘內完成授權，完成後會再通知你。';
+      alert('驗證碼已送出，系統會在一到兩分鐘內完成授權，完成後會再通知你。');
+      return;
+    }
     alert('驗證碼送出失敗：' + e.message + '\n\n請確認是從通知信裡的連結進來，或回覆通知信找教練協助。');
   } finally {
     btn.disabled = false;
