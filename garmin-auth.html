@@ -132,7 +132,7 @@
     </div>
 
     <div class="card">
-      <h2>輸入你的 Garmin 帳號</h2>
+      <h2 id="form-title">輸入你的 Garmin 帳號</h2>
       <div id="link-identity" style="display:none;background:#EEF2F8;border-left:4px solid #1F3864;padding:12px 14px;margin-bottom:14px;border-radius:6px;">
         <div style="font-size:12px;color:#64748b;">你正在為以下學員授權</div>
         <div id="link-identity-name" style="font-size:16px;font-weight:700;color:#0f172a;margin-top:4px;"></div>
@@ -151,12 +151,12 @@
 
       <div id="mfa-section" style="display:none;margin-top:18px;border-top:1px dashed #334155;padding-top:16px;">
         <div id="mfa-lead" style="display:none;">
-          <div style="font-size:17px;font-weight:700;color:#0f172a;margin-bottom:6px;">請輸入 Garmin 驗證碼</div>
-          <p style="font-size:13px;color:#475569;margin-bottom:10px;line-height:1.7;">
+          <div style="font-size:19px;font-weight:800;color:#f8fafc;margin-bottom:6px;">請輸入 Garmin 驗證碼</div>
+          <p style="font-size:13px;color:#cbd5e1;margin-bottom:12px;line-height:1.7;">
             Garmin 剛剛寄了一組數字到你的信箱。<strong>只需要填這組數字</strong>，不用再輸入帳號密碼。
           </p>
         </div>
-        <p style="font-size:13px;color:#94a3b8;margin-bottom:8px;line-height:1.6;">
+        <p id="mfa-hint-old" style="font-size:13px;color:#94a3b8;margin-bottom:8px;line-height:1.6;">
           <strong style="color:#e2e8f0;">如果 Garmin 要求一組驗證碼：</strong><br>
           填入 Garmin 寄給你的數字，再按下方按鈕。<br>
           這組號碼有三十分鐘效期，收到後盡快填寫。
@@ -285,6 +285,10 @@ const GAS_URL_Q = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQ
     if (sep) sep.style.display = 'none';
     const lead = document.getElementById('mfa-lead');
     if (lead) lead.style.display = 'block';
+    const t = document.getElementById('form-title');
+    if (t) t.textContent = '輸入 Garmin 驗證碼';
+    const oldhint = document.getElementById('mfa-hint-old');
+    if (oldhint) oldhint.style.display = 'none';
     const sec = document.getElementById('mfa-section');
     if (sec) { sec.style.display = 'block'; sec.style.borderTop = 'none'; sec.style.marginTop = '0'; sec.style.paddingTop = '0'; }
     const f = document.getElementById('mfa');
