@@ -110,9 +110,15 @@
         <button type="submit" id="submit-btn">授權無極限讀取訓練資料</button>
       </form>
 
-      <div style="margin:20px 0 16px; border-top:1px dashed #475569;"></div>
+      <div id="auth-sep" style="margin:20px 0 16px; border-top:1px dashed #475569;"></div>
 
       <div id="mfa-section" style="display:none;margin-top:18px;border-top:1px dashed #334155;padding-top:16px;">
+        <div id="mfa-lead" style="display:none;">
+          <div style="font-size:17px;font-weight:700;color:#0f172a;margin-bottom:6px;">請輸入 Garmin 驗證碼</div>
+          <p style="font-size:13px;color:#475569;margin-bottom:10px;line-height:1.7;">
+            Garmin 剛剛寄了一組數字到你的信箱。<strong>只需要填這組數字</strong>，不用再輸入帳號密碼。
+          </p>
+        </div>
         <p style="font-size:13px;color:#94a3b8;margin-bottom:8px;line-height:1.6;">
           <strong style="color:#e2e8f0;">如果 Garmin 要求一組驗證碼：</strong><br>
           填入 Garmin 寄給你的數字，再按下方按鈕。<br>
@@ -234,8 +240,16 @@ const GAS_URL_Q = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQ
 (function(){
   const p = new URLSearchParams(location.search);
   if (p.get('mfa') === '1') {
+    // 2026-11-09：從補碼信點進來時，帳號密碼區整段隱藏。
+    // 否則學員會以為又要重填一次帳密，甚至誤按上面的授權鈕。
+    const form = document.getElementById('auth-form');
+    if (form) form.style.display = 'none';
+    const sep = document.getElementById('auth-sep');
+    if (sep) sep.style.display = 'none';
+    const lead = document.getElementById('mfa-lead');
+    if (lead) lead.style.display = 'block';
     const sec = document.getElementById('mfa-section');
-    if (sec) sec.style.display = 'block';
+    if (sec) { sec.style.display = 'block'; sec.style.borderTop = 'none'; sec.style.marginTop = '0'; sec.style.paddingTop = '0'; }
     const f = document.getElementById('mfa');
     if (f) f.focus();
   }
