@@ -100,6 +100,17 @@
   .tnode.stu .bubble{background:#f6f0e2; border:1px solid #ead9b0;}
   .tnode.coa .bubble{background:#eef7f1; border:1px solid #cfe8d8;}
   .bubble .dt{font-size:11px; color:var(--sub); margin-top:5px;}
+  .bubble.recalled{background:#f2f3f5;border:1px dashed #c4ccd6;color:#7a8694;font-style:italic;}
+  .estate{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:800;border-radius:6px;
+    padding:1px 6px;background:#e8f0fe;color:#1a56c4;vertical-align:middle;}
+  .hist-btn{border:none;background:none;color:#1a56c4;font-size:11.5px;font-weight:800;
+    padding:0;margin-top:6px;cursor:pointer;}
+  .edit-history{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px;display:none;}
+  .edit-history.open{display:block;}
+  .eh-item{font-size:12px;color:var(--sub);margin-bottom:7px;line-height:1.5;}
+  .eh-item .eh-type{font-weight:800;color:var(--ink);}
+  .eh-item .eh-old{display:block;color:#a35412;}
+  .eh-item .eh-new{display:block;color:#1f7a4c;}
   .empty{color:var(--sub); font-size:14px; text-align:center; padding:16px 0;}
   .foot{margin-top:18px; text-align:center; font-size:11.5px; color:#8fa3b8; letter-spacing:.5px;}
 </style>
@@ -111,7 +122,7 @@
       <img id="brandLogo" src="assets/bek_logo.png" alt="BEK">
       <span class="name" id="brandName">BEK RUNNING COACHING</span>
     </div>
-<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v55・2026.11.11</div>
+<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v56・2026.11.20</div>
     <h1>學員訊息</h1>
     <p>要請假、身體有狀況，或有事想告訴教練，就在這裡寫下訊息；想查過去的課表與教練評註，切到「我的訓練紀錄」。</p>
     <span class="who" id="who">…</span>
@@ -353,20 +364,52 @@
           map[t].push(m);
         });
         box.innerHTML = groups.map(function(g, gi){
-          var nodes = g.map(function(m){
+          var nodes = g.map(function(m, ni){
             var whoLine = '<div class="who-line">學員</div>';
             var bubbles = '<div class="bubble">' + esc(m.text)
               + '<div class="dt">' + esc(m.date) + ' · ' + esc(m.category) + '</div></div>';
-            if (m.reply && m.status === '已回覆') {
+            // 教練回覆：收回提示、已編輯標記與編輯紀錄
+            if (m.replyState === 'recalled') {
               bubbles += '<div class="who-line" style="margin-top:8px;">教練</div>'
-                + '<div class="bubble">' + esc(m.reply)
-                + (m.replyDate ? '<div class="dt">' + esc(m.replyDate) + '</div>' : '') + '</div>';
+                + '<div class="bubble recalled">教練已收回一則訊息</div>';
+            } else if (m.reply && m.status === '已回覆') {
+              var hid = 'eh_' + gi + '_' + ni;
+              bubbles += '<div class="who-line" style="margin-top:8px;">教練</div>'
+                + '<div class="bubble">' + esc(m.reply);
+              if (m.replyState === 'edited') {
+                bubbles += '<span class="estate">已編輯' + (m.lastEditAt ? ' ' + esc(m.lastEditAt) : '') + '</span>';
+              }
+              if (m.replyDate) bubbles += '<div class="dt">' + esc(m.replyDate) + '</div>';
+              bubbles += '</div>';
+              var evs = m.editLog || [];
+              if (evs.some(function(e){ return e.type === 'edit' || e.type === 'recall'; })) {
+                bubbles += '<button type="button" class="hist-btn" data-target="' + hid + '">查看編輯紀錄</button>'
+                  + '<div class="edit-history" id="' + hid + '">';
+                evs.forEach(function(e){
+                  bubbles += '<div class="eh-item"><span class="eh-type">'
+                    + (e.type === 'send' ? '回覆' : e.type === 'edit' ? '編輯' : '收回')
+                    + '</span> ' + esc(e.at || '') + (e.by ? '・' + esc(e.by) : '');
+                  if (e.before) bubbles += '<span class="eh-old">原文：' + esc(e.before) + '</span>';
+                  if (e.after) bubbles += '<span class="eh-new">新文：' + esc(e.after) + '</span>';
+                  bubbles += '</div>';
+                });
+                bubbles += '</div>';
+              }
             }
             return '<div class="tnode stu">' + whoLine + bubbles + '</div>';
           }).join('');
           return '<div class="thread"><div class="th-meta"><span class="tt">對話</span><span>' +
             (gi + 1) + '</span></div>' + nodes + '</div>';
         }).join('');
+
+        // 編輯紀錄展開／收合
+        box.querySelectorAll('button.hist-btn').forEach(function(b){
+          b.addEventListener('click', function(){
+            var tgt = document.getElementById(b.dataset.target);
+            if (tgt) tgt.classList.toggle('open');
+            b.textContent = (tgt && tgt.classList.contains('open')) ? '收合編輯紀錄' : '查看編輯紀錄';
+          });
+        });
       })
       .catch(function(){ box.innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>'; });
   }

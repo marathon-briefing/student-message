@@ -84,6 +84,20 @@
     cursor:pointer; letter-spacing:1px;}
   .rbtn:disabled{opacity:.5;}
 
+  /* 編輯與收回（2026-11-20） */
+  .estate{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:800;border-radius:6px;
+    padding:1px 6px;background:#e8f0fe;color:#1a56c4;vertical-align:middle;}
+  .bubble.recalled{background:#f2f3f5;border:1px dashed #c4ccd6;color:#7a8694;font-style:italic;}
+  .edit-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .ebtn{border:none;border-radius:9px;padding:7px 12px;font-size:12.5px;font-weight:800;
+    cursor:pointer;letter-spacing:.5px;}
+  .ebtn.edit{background:#1f7a8c;color:#fff;}
+  .ebtn.recall{background:#b06000;color:#fff;}
+  .ebtn.save{background:#1f8a4c;color:#fff;}
+  .ebtn.cancel{background:#e3e8ee;color:#3a4754;}
+  .ebtn:disabled{opacity:.5;}
+  .tnode.coa textarea{margin-top:8px;min-height:64px;}
+
   .empty{text-align:center; color:var(--sub); font-size:14px; padding:26px 0;}
   .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:24px; z-index:9;
     background:#1c2b3a; color:#fff; border-radius:14px; padding:11px 20px; font-size:14px;
@@ -100,7 +114,7 @@
       <img id="brandLogo" src="assets/bek_logo.png" alt="BEK">
       <span class="name" id="brandName">BEK RUNNING COACHING</span>
     </div>
-<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v55・2026.11.11 ｜ @34</div>
+<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v56・2026.11.20 ｜ @39</div>
     <h1>學員訊息・教練端</h1>
     <p id="stat">載入中…</p>
   </header>
@@ -191,6 +205,34 @@
       .catch(function(){ btn.disabled = false; btn.textContent = oldTxt; toast('網路連線失敗', 'err'); });
   }
 
+  function postCoachEdit(row, text, btn){
+    var oldTxt = btn.textContent;
+    btn.disabled = true; btn.textContent = '儲存中…';
+    fetch(API + '?mode=coach_edit', {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body: JSON.stringify({mode:'coach_edit', ck:CK, row:row, reply:text})
+    }).then(function(){
+      toast('回覆已更新，學員端顯示已編輯');
+      load();
+    })
+      .catch(function(){ btn.disabled = false; btn.textContent = oldTxt; toast('網路連線失敗', 'err'); });
+  }
+
+  function postCoachRecall(row, btn){
+    var oldTxt = btn.textContent;
+    btn.disabled = true; btn.textContent = '收回中…';
+    fetch(API + '?mode=coach_recall', {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body: JSON.stringify({mode:'coach_recall', ck:CK, row:row})
+    }).then(function(){
+      toast('已收回，訊息回到待回覆');
+      load();
+    })
+      .catch(function(){ btn.disabled = false; btn.textContent = oldTxt; toast('網路連線失敗', 'err'); });
+  }
+
   function load(){
     fetch(API + '?mode=coach_list&ck=' + encodeURIComponent(CK))
       .then(function(r){ return r.json(); })
@@ -233,9 +275,21 @@
             html += '<div class="tnode stu"><div class="who-line">學員</div><div class="bubble">'
               + '<span class="cat-tag">' + esc(m.cat) + '</span>' + esc(m.text)
               + '<div class="meta">' + esc(m.date) + '</div></div></div>';
-            if (m.reply && m.status === '已回覆') {
+            if (m.replyState === 'recalled') {
+              // 已收回：顯示提示，實際內容只留存在後台紀錄
+              html += '<div class="tnode coa"><div class="who-line">教練</div>'
+                + '<div class="bubble recalled">教練已收回一則訊息</div></div>';
+            } else if (m.reply && m.status === '已回覆') {
+              var stateTag = m.replyState === 'edited'
+                ? '<span class="estate">已編輯' + (m.lastEditAt ? ' ' + esc(m.lastEditAt) : '') + '</span>' : '';
               html += '<div class="tnode coa"><div class="who-line">教練</div><div class="bubble">'
-                + esc(m.reply) + '<div class="meta">' + esc(m.replyDate || '') + '</div></div></div>';
+                + esc(m.reply) + stateTag
+                + '<div class="meta">' + esc(m.replyDate || '') + '</div></div>'
+                + '<div class="edit-actions">'
+                + '<button type="button" class="ebtn edit" data-row="' + m.row
+                + '" data-reply="' + esc(m.reply) + '">編輯</button>'
+                + (m.canRecall ? '<button type="button" class="ebtn recall" data-row="' + m.row + '">收回</button>' : '')
+                + '</div></div>';
             }
           });
 
@@ -300,6 +354,51 @@
               load();
             })
               .catch(function(){ b.disabled = false; b.textContent = '回覆並標為已回覆'; toast('網路連線失敗', 'err'); });
+          });
+        });
+
+        // 編輯：展開預填輸入框，儲存呼叫 coach_edit
+        box.querySelectorAll('button.ebtn.edit').forEach(function(b){
+          b.addEventListener('click', function(){
+            var row = parseInt(b.dataset.row,10);
+            var coaNode = b.closest('.tnode.coa');
+            var editBar = b.closest('.edit-actions');
+            var bubble = coaNode.querySelector('.bubble');
+            if (coaNode.querySelector('textarea')) return;
+            var ta = document.createElement('textarea');
+            ta.value = b.dataset.reply;
+            var mini = document.createElement('div');
+            mini.className = 'edit-actions';
+            var save = document.createElement('button');
+            save.type = 'button'; save.className = 'ebtn save'; save.textContent = '儲存修改';
+            var cancel = document.createElement('button');
+            cancel.type = 'button'; cancel.className = 'ebtn cancel'; cancel.textContent = '取消';
+            mini.appendChild(save); mini.appendChild(cancel);
+            bubble.style.display = 'none';
+            editBar.style.display = 'none';
+            coaNode.appendChild(ta);
+            coaNode.appendChild(mini);
+            ta.focus();
+            save.addEventListener('click', function(){
+              var t = (ta.value || '').trim();
+              if (t.length < 1) { toast('回覆不可空白', 'err'); return; }
+              postCoachEdit(row, t, save);
+            });
+            cancel.addEventListener('click', function(){
+              bubble.style.display = '';
+              editBar.style.display = '';
+              ta.remove(); mini.remove();
+            });
+          });
+        });
+
+        // 收回：確認後呼叫 coach_recall
+        box.querySelectorAll('button.ebtn.recall').forEach(function(b){
+          b.addEventListener('click', function(){
+            var row = parseInt(b.dataset.row,10);
+            if (confirm('確定收回這則回覆？收回後訊息回到待回覆，學員端顯示已收回。')) {
+              postCoachRecall(row, b);
+            }
           });
         });
       })
