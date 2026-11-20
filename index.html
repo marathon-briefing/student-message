@@ -122,7 +122,7 @@
       <img id="brandLogo" src="assets/bek_logo.png" alt="BEK">
       <span class="name" id="brandName">BEK RUNNING COACHING</span>
     </div>
-<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v56・2026.11.20</div>
+<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v57・2026.11.20</div>
     <h1>學員訊息</h1>
     <p>要請假、身體有狀況，或有事想告訴教練，就在這裡寫下訊息；想查過去的課表與教練評註，切到「我的訓練紀錄」。</p>
     <span class="who" id="who">…</span>
@@ -363,6 +363,8 @@
           if (!map[t]) { map[t] = []; groups.push(map[t]); }
           map[t].push(m);
         });
+        // 最新對話組排在最上面；組內維持時間順序，對話才好讀
+        groups.reverse();
         box.innerHTML = groups.map(function(g, gi){
           var nodes = g.map(function(m, ni){
             var whoLine = '<div class="who-line">學員</div>';
