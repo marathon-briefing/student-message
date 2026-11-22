@@ -89,13 +89,19 @@
   .ov-list li:last-child{border-bottom:0;}
   .ov-list .d{color:#8a6d14; font-weight:800; white-space:nowrap; min-width:74px;}
   .ov-list .c{flex:1; word-break:break-word; color:var(--ink);}
+  .ov-list .st{font-size:11px; font-weight:800; border-radius:8px; padding:2px 7px;
+    white-space:nowrap; align-self:center;}
+  .ov-list .st.pending{background:#fdeeda; color:#b06000;}
+  .ov-list .st.reject{background:#fbe3e1; color:#b3261e;}
+  .ov-list li.is-reject .c{color:#7a8794;}
+  .ov-list .empty-li{color:#7a8794;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="logo"><img id="logo" alt="logo"><span class="name" id="brandName"></span></div>
-<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v55・2026.11.11 ｜ @34</div>
+<div class="ver" style="display:inline-block;font-size:12px;letter-spacing:.8px;color:#fff;background:rgba(255,255,255,.18);border-radius:14px;padding:4px 12px;margin:8px 0 2px;font-weight:700;">v58・2026.11.22 ｜ 退回/待審分流</div>
     <h1>教練審查・課表執行</h1>
     <span class="stat" id="stat"></span>
   </header>
@@ -223,10 +229,14 @@ function renderOverview(){
   box.appendChild(grid);
 }
 
+function isReject(it){ return /退回/.test(String((it && it.status) || '')); }
+
 function wxSummaryHtml(s){
+  var sp = s.scheduleItems || [], cp = s.commentItems || [];
+  var sr = sp.filter(isReject).length, cr = cp.filter(isReject).length;
   return '<div class="code">' + esc(s.code) + '　' + esc(s.name || '') + '</div>'
-    + '<div class="m">課表待審：<b>' + (s.schedulePending || 0) + '</b></div>'
-    + '<div class="m">評註待審：<b>' + (s.commentPending || 0) + '</b></div>'
+    + '<div class="m">課表待審：<b>' + (sp.length - sr) + '</b>，退回：<b>' + sr + '</b></div>'
+    + '<div class="m">評註待審：<b>' + (cp.length - cr) + '</b>，退回：<b>' + cr + '</b></div>'
     + (s.race ? '<div class="m">目標：' + esc(s.race) + '（' + esc(s.raceDate || '') + '）</div>' : '');
 }
 
@@ -241,21 +251,32 @@ function toggleWxDetail(item, s){
         + (s.raceDate ? '（' + esc(s.raceDate) + '）' : '') + '</span></div>';
   if (s.recentConfirm) rows += '<div class="row"><span class="k">最近確認</span><span class="v">' + esc(s.recentConfirm) + '</span></div>';
 
-  function listBlock(title, arr, fallbackCount) {
+  function itemRow(it) {
+    var rej = isReject(it);
+    return '<li' + (rej ? ' class="is-reject"' : '') + '><span class="d">'
+      + esc(it.date) + (it.dow ? ' ' + esc(it.dow) : '') + '</span>'
+      + '<span class="c">' + esc(it.content || '') + '</span>'
+      + '<span class="st ' + (rej ? 'reject' : 'pending') + '">' + (rej ? '退回' : '待審') + '</span></li>';
+  }
+  function listBlock(title, arr) {
     arr = arr || [];
     if (!arr.length) {
-      return '<div class="ov-sec">' + title + '（' + (fallbackCount || 0) + ' 筆）</div>'
-        + '<div class="ov-list"><li><span class="c">查無逐筆清單</span></li></div>';
+      return '<div class="ov-sec">' + title + '待審（0 筆）</div>'
+        + '<div class="ov-list"><li class="empty-li">查無逐筆清單</li></div>';
     }
-    var h = '<div class="ov-sec">' + title + '（' + arr.length + ' 筆）</div><ul class="ov-list">';
-    arr.forEach(function (it) {
-      h += '<li><span class="d">' + esc(it.date) + (it.dow ? ' ' + esc(it.dow) : '') + '</span>'
-         + '<span class="c">' + esc(it.content || '') + '</span></li>';
-    });
-    return h + '</ul>';
+    var pend = [], rej = [];
+    arr.forEach(function (it) { (isReject(it) ? rej : pend).push(it); });
+    var h = '<div class="ov-sec">' + title + '待審（' + pend.length + ' 筆）</div><ul class="ov-list">';
+    h += pend.length ? pend.map(itemRow).join('') : '<li class="empty-li">無待審筆</li>';
+    h += '</ul>';
+    if (rej.length) {
+      h += '<div class="ov-sec">' + title + '退回（' + rej.length + ' 筆，待重寫）</div><ul class="ov-list">';
+      h += rej.map(itemRow).join('') + '</ul>';
+    }
+    return h;
   }
-  rows += listBlock('課表待審', s.scheduleItems, s.schedulePending);
-  rows += listBlock('評註待審', s.commentItems, s.commentPending);
+  rows += listBlock('課表', s.scheduleItems);
+  rows += listBlock('評註', s.commentItems);
   var d = document.createElement('div');
   d.className = 'ov-detail';
   d.innerHTML = rows;
