@@ -437,5 +437,37 @@
   }, 20000);
 })();
 </script>
+<script>
+// 更新接收器（2026-11-25）：加入主畫面一次之後，任何升級由這裡自己接手，不必重拉捷徑。
+// 1) 版本哨兵：比對 version.json 的 build，落後即帶 ?r= 重載，繞過 Pages 10 分鐘快取。
+// 2) service worker：接手後 HTML 一律 no-store 取網路，換版自動生效。
+var BUILD = '2026.11.25-1'; // 由 bek/release_student_app.py 自動改寫，勿手改
+(function(){
+  var u = new URL(location.href);
+  if (!u.searchParams.get('r')) {
+    fetch('./version.json?t=' + Date.now(), { cache: 'no-store' })
+      .then(function(r){ return r.json(); })
+      .then(function(v){
+        if (v && v.build && v.build !== BUILD) {
+          u.searchParams.set('r', v.build);
+          location.replace(u.toString());
+        }
+      }).catch(function(){});
+  }
+  if (!('serviceWorker' in navigator)) return;
+  var reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if (reloaded || sessionStorage.getItem('sw_ctl_reload')) return;
+    reloaded = true;
+    sessionStorage.setItem('sw_ctl_reload', '1');
+    location.reload();
+  });
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+      .then(function(reg){ reg.update(); })
+      .catch(function(){});
+  });
+})();
+</script>
 </body>
 </html>

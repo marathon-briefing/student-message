@@ -1,0 +1,5 @@
+{
+  "build": "2026.11.25-1",
+  "published": "2026-11-25",
+  "note": "每次發布由 bek/release_student_app.py 自動遞增並同步三頁內嵌 BUILD"
+}
