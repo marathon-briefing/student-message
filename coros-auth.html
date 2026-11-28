@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>COROS 授權｜BEK 跑步訓練</title>
+<style>
+  :root { --bk:#111; --mid:#555; --line:#e3e3e3; --accent:#0b6cf0; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
+         background:#f6f6f4; color:var(--bk); line-height:1.6; }
+  .wrap { max-width:520px; margin:0 auto; padding:28px 20px 40px; }
+  h1 { font-size:22px; margin:8px 0 4px; letter-spacing:.5px; }
+  .sub { color:var(--mid); font-size:14px; margin-bottom:22px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px; }
+  .ok { font-size:16px; font-weight:700; margin-bottom:12px; }
+  .code { font-family:ui-monospace,Menlo,monospace; font-size:15px; word-break:break-all;
+          background:#f2f6ff; border:1px dashed #b9d0f5; border-radius:10px; padding:14px; margin:12px 0; }
+  .btn { display:block; width:100%; padding:14px; border:0; border-radius:10px;
+         background:var(--bk); color:#fff; font-size:16px; font-weight:600; margin-top:14px; }
+  .btn:active { opacity:.7; }
+  .hint { font-size:13px; color:var(--mid); margin-top:14px; }
+  .err { color:#b3261e; font-weight:600; }
+  ol { padding-left:20px; font-size:14px; color:#333; }
+  .foot { text-align:center; color:#999; font-size:12px; margin-top:28px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>COROS 授權</h1>
+  <div class="sub">BEK 跑步訓練 · 訓練資料自動同步</div>
+
+  <div class="card" id="done" style="display:none">
+    <div class="ok">✅ 已收到你的授權</div>
+    <div class="hint">請把下面這串授權碼複製，回傳給教練（只會用這一次）：</div>
+    <div class="code" id="codeBox"></div>
+    <button class="btn" id="copyBtn">複製授權碼</button>
+    <div class="hint">貼回給教練後就不用再動作。這串碼一次性、約十分鐘內有效；若失效，教練會再給你新連結。</div>
+  </div>
+
+  <div class="card" id="err" style="display:none">
+    <div class="ok err">授權沒有完成</div>
+    <div class="hint" id="errMsg"></div>
+    <div class="hint">請關閉這個頁面，跟教練說一聲，會再給你新連結。</div>
+  </div>
+
+  <div class="card" id="wp" style="display:none">
+    <div class="ok">尚未完成授權</div>
+    <ol>
+      <li>請用教練給你的連結開啟本頁，會自動跳到 COROS 登入。</li>
+      <li>登入你自己的 COROS 帳號，按「同意／授權」。</li>
+      <li>回到本頁後，複製頁面顯示的授權碼，回傳給教練。</li>
+    </ol>
+    <div class="hint">你的密碼只在 COROS 官方頁面輸入，不會經過教練端。</div>
+  </div>
+
+  <div class="foot">© BEK 跑步訓練</div>
+</div>
+
+<script>
+(function () {
+  var qs = new URLSearchParams(location.search);
+  var code = qs.get('code');
+  var err = qs.get('error');
+  var show = function (id) { document.getElementById(id).style.display = 'block'; };
+
+  if (err) {
+    show('err');
+    document.getElementById('errMsg').textContent =
+      'COROS 回報：' + err + (qs.get('error_description') ? '（' + qs.get('error_description') + '）' : '');
+    return;
+  }
+  if (code) {
+    show('done');
+    document.getElementById('codeBox').textContent = code;
+    document.getElementById('copyBtn').onclick = function () {
+      var t = code, b = this;
+      var done = function () { b.textContent = '已複製，貼回給教練即可'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(t).then(done, function () { fallback(t, done); });
+      } else { fallback(t, done); }
+    };
+    return;
+  }
+  show('wp');
+})();
+
+function fallback(text, done) {
+  var ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta);
+  ta.select(); try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta); done();
+}
+</script>
+</body>
+</html>
