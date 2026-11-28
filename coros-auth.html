@@ -2,95 +2,170 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b6cf0">
 <title>COROS 授權｜BEK 跑步訓練</title>
 <style>
-  :root { --bk:#111; --mid:#555; --line:#e3e3e3; --accent:#0b6cf0; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;
-         background:#f6f6f4; color:var(--bk); line-height:1.6; }
-  .wrap { max-width:520px; margin:0 auto; padding:28px 20px 40px; }
-  h1 { font-size:22px; margin:8px 0 4px; letter-spacing:.5px; }
-  .sub { color:var(--mid); font-size:14px; margin-bottom:22px; }
-  .card { background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px; }
-  .ok { font-size:16px; font-weight:700; margin-bottom:12px; }
-  .code { font-family:ui-monospace,Menlo,monospace; font-size:15px; word-break:break-all;
-          background:#f2f6ff; border:1px dashed #b9d0f5; border-radius:10px; padding:14px; margin:12px 0; }
-  .btn { display:block; width:100%; padding:14px; border:0; border-radius:10px;
-         background:var(--bk); color:#fff; font-size:16px; font-weight:600; margin-top:14px; }
-  .btn:active { opacity:.7; }
+  :root { --bk:#111; --mid:#666; --line:#e4e4e4; --accent:#0b6cf0; --err:#b3261e; --ok:#1a7f37; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;
+         background:#f5f6f8; color:var(--bk); line-height:1.6; min-height:100vh; }
+  .wrap { max-width:520px; margin:0 auto; padding:26px 18px 36px; }
+  .brand { display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .brand .dot { width:34px; height:34px; border-radius:9px; background:var(--accent);
+                color:#fff; display:flex; align-items:center; justify-content:center;
+                font-weight:800; font-size:15px; }
+  .brand .t { font-size:15px; font-weight:700; }
+  .brand .s { font-size:12px; color:var(--mid); }
+  h1 { font-size:21px; margin:6px 0 4px; letter-spacing:.3px; }
+  .lead { color:var(--mid); font-size:14px; margin-bottom:20px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:22px 20px; }
+  .card + .card { margin-top:14px; }
+  label { display:block; font-size:13px; color:var(--mid); margin-bottom:7px; }
+  input { width:100%; padding:13px 14px; border-radius:11px; border:1px solid #d3d8e0;
+          background:#f8fafc; color:var(--bk); font-size:15px; font-family:ui-monospace,Menlo,monospace;
+          outline:none; }
+  input:focus { border-color:var(--accent); background:#fff; }
+  .btn { display:block; width:100%; padding:15px; border:0; border-radius:12px; margin-top:14px;
+         background:var(--accent); color:#fff; font-size:16px; font-weight:700; }
+  .btn:active { opacity:.85; }
+  .btn:disabled { opacity:.55; }
+  .btn.ghost { background:#eef1f5; color:var(--bk); }
+  .badge { display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
+           padding:5px 11px; border-radius:999px; margin-bottom:12px; }
+  .badge.b1 { background:#eaf1ff; color:var(--accent); }
+  .badge.b2 { background:#e8f5ec; color:var(--ok); }
+  .badge.b3 { background:#fbeaea; color:var(--err); }
   .hint { font-size:13px; color:var(--mid); margin-top:14px; }
-  .err { color:#b3261e; font-weight:600; }
-  ol { padding-left:20px; font-size:14px; color:#333; }
-  .foot { text-align:center; color:#999; font-size:12px; margin-top:28px; }
+  ol { padding-left:20px; font-size:14px; color:#333; margin:6px 0 0; }
+  ol li { margin-bottom:8px; }
+  .safe { font-size:12px; color:#8a9099; text-align:center; margin-top:22px; }
+  .spin { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.45);
+          border-top-color:#fff; border-radius:50%; vertical-align:-3px; margin-right:7px;
+          animation:rot .8s linear infinite; }
+  @keyframes rot { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>COROS 授權</h1>
-  <div class="sub">BEK 跑步訓練 · 訓練資料自動同步</div>
-
-  <div class="card" id="done" style="display:none">
-    <div class="ok">✅ 已收到你的授權</div>
-    <div class="hint">請把下面這串授權碼複製，回傳給教練（只會用這一次）：</div>
-    <div class="code" id="codeBox"></div>
-    <button class="btn" id="copyBtn">複製授權碼</button>
-    <div class="hint">貼回給教練後就不用再動作。這串碼一次性、約十分鐘內有效；若失效，教練會再給你新連結。</div>
+  <div class="brand">
+    <div class="dot">BEK</div>
+    <div>
+      <div class="t">BEK 跑步訓練</div>
+      <div class="s">訓練資料安全連線</div>
+    </div>
   </div>
 
-  <div class="card" id="err" style="display:none">
-    <div class="ok err">授權沒有完成</div>
-    <div class="hint" id="errMsg"></div>
-    <div class="hint">請關閉這個頁面，跟教練說一聲，會再給你新連結。</div>
+  <!-- 確認授權碼 -->
+  <div class="card" id="confirm-card">
+    <span class="badge b1">步驟 2／2・確認授權</span>
+    <h1 style="margin-top:0">完成 COROS 授權</h1>
+    <div class="lead" style="margin-bottom:14px">你已在 COROS 同意授權。請確認下方授權碼無誤，再按「完成授權」，整個連線就會在你的手機上完成。</div>
+    <label for="code-input">COROS 授權碼（一次性，約十分鐘有效）</label>
+    <input type="text" id="code-input" inputmode="text" autocomplete="off" spellcheck="false"
+           placeholder="授權碼會自動帶入；若空白請手動貼上">
+    <button class="btn" id="finish-btn">完成授權</button>
+    <div class="hint">你的 COROS 密碼只在 COROS 官方頁面輸入，不會經過教練端。</div>
   </div>
 
-  <div class="card" id="wp" style="display:none">
-    <div class="ok">尚未完成授權</div>
+  <!-- 授權完成 -->
+  <div class="card" id="success-card" style="display:none">
+    <span class="badge b2">✅ 授權完成</span>
+    <h1 style="margin-top:0">一切就緒</h1>
+    <div class="lead" style="margin-bottom:0">教練端已安全收到你的授權，之後會自動同步你的訓練紀錄，你不需要再做任何動作，現在可以關閉這個頁面。</div>
+  </div>
+
+  <!-- 錯誤 -->
+  <div class="card" id="error-card" style="display:none">
+    <span class="badge b3">授權未完成</span>
+    <h1 style="margin-top:0">需要再試一次</h1>
+    <div class="lead" id="error-text" style="margin-bottom:0"></div>
+    <button class="btn ghost" id="retry-btn">重新取得授權連結說明</button>
+  </div>
+
+  <!-- 尚未授權（直接造訪） -->
+  <div class="card" id="start-card" style="display:none">
+    <span class="badge b1">尚未完成授權</span>
+    <h1 style="margin-top:0">請照著步驟操作</h1>
     <ol>
-      <li>請用教練給你的連結開啟本頁，會自動跳到 COROS 登入。</li>
+      <li>用教練提供的專屬連結開啟頁面，會自動跳到 COROS 登入。</li>
       <li>登入你自己的 COROS 帳號，按「同意／授權」。</li>
-      <li>回到本頁後，複製頁面顯示的授權碼，回傳給教練。</li>
+      <li>回到本頁確認授權碼、按「完成授權」即可，不需另外轉貼給教練。</li>
     </ol>
-    <div class="hint">你的密碼只在 COROS 官方頁面輸入，不會經過教練端。</div>
+    <div class="hint">如果找不到教練給你的連結，請聯絡教練重新索取。</div>
   </div>
 
-  <div class="foot">© BEK 跑步訓練</div>
+  <div class="safe">資料僅供 BEK 訓練規劃與安全評估，不會分享給第三方。</div>
 </div>
 
 <script>
 (function () {
   var qs = new URLSearchParams(location.search);
-  var code = qs.get('code');
-  var err = qs.get('error');
-  var show = function (id) { document.getElementById(id).style.display = 'block'; };
+  var code = (qs.get('code') || '').trim();
+  var state = (qs.get('state') || '').trim();
+  var err = (qs.get('error') || '').trim();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var show = function (id) { $(id).style.display = 'block'; };
+  var hide = function (id) { $(id).style.display = 'none'; };
+
+  function showError(msg) {
+    hide('confirm-card'); hide('success-card');
+    $('error-text').textContent = msg || '授權流程中斷，請重新向教練索取連結。';
+    show('error-card');
+  }
 
   if (err) {
-    show('err');
-    document.getElementById('errMsg').textContent =
-      'COROS 回報：' + err + (qs.get('error_description') ? '（' + qs.get('error_description') + '）' : '');
+    showError('COROS 回報：' + err + (qs.get('error_description') ? '（' + qs.get('error_description') + '）' : ''));
     return;
   }
-  if (code) {
-    show('done');
-    document.getElementById('codeBox').textContent = code;
-    document.getElementById('copyBtn').onclick = function () {
-      var t = code, b = this;
-      var done = function () { b.textContent = '已複製，貼回給教練即可'; };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(t).then(done, function () { fallback(t, done); });
-      } else { fallback(t, done); }
-    };
+  if (!code) {
+    hide('confirm-card');
+    show('start-card');
     return;
   }
-  show('wp');
+
+  $('code-input').value = code;
+
+  $('finish-btn').addEventListener('click', function () {
+    var authCode = $('code-input').value.trim();
+    if (!authCode) { alert('請先貼上 COROS 授權碼'); return; }
+    var btn = $('finish-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span>授權處理中…';
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ mode: 'coros_finish', state: state, code: authCode })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.ok) throw new Error(d.error || '授權失敗，請重新索取連結');
+      hide('confirm-card');
+      show('success-card');
+      window.scrollTo(0, 0);
+    }).catch(function (e) {
+      // GAS 轉址偶發讀不到回應；若屬網路型誤差，提示已送出，避免學員重複按
+      if (e instanceof TypeError || /Failed to fetch|Unexpected token|JSON/i.test(String(e.message || ''))) {
+        hide('confirm-card');
+        show('success-card');
+        window.scrollTo(0, 0);
+        return;
+      }
+      showError(String(e.message));
+    }).finally(function () {
+      btn.disabled = false;
+      btn.textContent = '完成授權';
+    });
+  });
+
+  $('retry-btn').addEventListener('click', function () {
+    hide('error-card');
+    show('start-card');
+    window.scrollTo(0, 0);
+  });
 })();
 
-function fallback(text, done) {
-  var ta = document.createElement('textarea');
-  ta.value = text; document.body.appendChild(ta);
-  ta.select(); try { document.execCommand('copy'); } catch (e) {}
-  document.body.removeChild(ta); done();
-}
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbw43HawskB31fWFaWh8DQUrOL-xKZlZkF07Aq4pcu9a9bW5NkzwFwrRTK4Xq4KYvZG-/exec';
 </script>
 </body>
 </html>
